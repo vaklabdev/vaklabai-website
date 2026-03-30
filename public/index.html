@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Vaklab AI — Voice-to-Workflow Infrastructure for Healthcare</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  /* Brand — pulled exactly from product screenshots */
+  --navy:    #2f3899;   /* logo/primary indigo-navy */
+  --navy2:   #3d4dbc;   /* hover state */
+  --navy-dk: #1e2563;   /* dark headings */
+  --teal:    #00b2a9;   /* teal accent — sidebar active, badges */
+  --teal2:   #00cfc5;
+  --teal-dim: rgba(0,178,169,.1);
+  --teal-border: rgba(0,178,169,.25);
+
+  /* Backgrounds — product uses these */
+  --bg:      #f0f2f7;   /* page background */
+  --bg2:     #e8eaf2;   /* slightly deeper section bg */
+  --white:   #ffffff;
+  --sidebar: #f8f9fc;   /* sidebar / card bg */
+
+  /* Text */
+  --text:    #1a2035;
+  --text2:   #4a5568;
+  --muted:   #8898b4;
+  --muted2:  #a0aec0;
+
+  /* Borders */
+  --border:  #eef0f6;
+  --border2: #dde1ef;
+
+  /* Status */
+  --green:   #2e7d32;
+  --green-bg:#e8f7ed;
+  --amber:   #b45309;
+  --amber-bg:#fef3d8;
+  --blue-bg: #e8f0fe;
+
+  --sans:  'Inter', sans-serif;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --mono:  'JetBrains Mono', monospace;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.6; overflow-x: hidden; font-size: 15px; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── NAV ─────────────────────────────────────── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 60px; height: 64px;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 12px rgba(47,56,153,.06);
+  transition: all .3s;
+}
+nav.scrolled { box-shadow: 0 2px 20px rgba(47,56,153,.1); }
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none;
+}
+.logo-ico {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: var(--navy);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(47,56,153,.3);
+}
+.logo-text { font-size: 1.05rem; font-weight: 700; color: var(--navy-dk); letter-spacing: -.01em; }
+.nav-links { display: flex; gap: 4px; list-style: none; }
+.nav-links a {
+  font-size: .82rem; font-weight: 500; color: var(--text2);
+  text-decoration: none; padding: 6px 14px; border-radius: 6px;
+  transition: all .2s;
+}
+.nav-links a:hover { color: var(--navy); background: rgba(47,56,153,.06); }
+.nright { display: flex; align-items: center; gap: 10px; }
+.nphone {
+  font-size: .82rem; font-weight: 500; color: var(--text2);
+  text-decoration: none; padding: 7px 14px; border-radius: 8px;
+  border: 1px solid var(--border2); transition: all .2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.nphone:hover { color: var(--navy); border-color: var(--navy); background: var(--blue-bg); }
+.ndemo {
+  background: var(--navy); color: #fff; padding: 8px 20px; border-radius: 8px;
+  border: none; font-family: var(--sans); font-size: .82rem; font-weight: 600;
+  cursor: pointer; transition: all .25s; text-decoration: none; display: inline-block;
+}
+.ndemo:hover { background: var(--navy2); box-shadow: 0 4px 16px rgba(47,56,153,.3); transform: translateY(-1px); }
+
+/* ── BUTTONS ─────────────────────────────────── */
+.btnp {
+  background: var(--navy); color: #fff; padding: 13px 32px; border-radius: 10px;
+  border: none; font-family: var(--sans); font-size: .88rem; font-weight: 600;
+  cursor: pointer; transition: all .25s; text-decoration: none; display: inline-block;
+}
+.btnp:hover { background: var(--navy2); box-shadow: 0 6px 20px rgba(47,56,153,.3); transform: translateY(-2px); }
+.btns {
+  background: var(--white); color: var(--navy); padding: 13px 32px; border-radius: 10px;
+  border: 1px solid var(--border2); font-family: var(--sans); font-size: .88rem; font-weight: 600;
+  cursor: pointer; transition: all .25s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+}
+.btns:hover { border-color: var(--navy); background: var(--blue-bg); }
+.btnteal {
+  background: var(--teal); color: #fff; padding: 13px 32px; border-radius: 10px;
+  border: none; font-family: var(--sans); font-size: .88rem; font-weight: 600;
+  cursor: pointer; transition: all .25s; text-decoration: none; display: inline-block;
+}
+.btnteal:hover { background: var(--teal2); box-shadow: 0 6px 20px rgba(0,178,169,.3); transform: translateY(-2px); }
+
+/* ── HERO ────────────────────────────────────── */
+.hero {
+  min-height: 100vh; display: flex; align-items: center;
+  padding: 100px 60px 80px; position: relative; overflow: hidden;
+  background: linear-gradient(145deg, #f0f2f7 0%, #e8eaf5 50%, #f0f7f9 100%);
+}
+.hero-bg-dots {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(circle, rgba(47,56,153,.07) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 80% 80% at 60% 50%, black 0%, transparent 70%);
+}
+.hero-glow {
+  position: absolute; top: -100px; right: -100px; width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(0,178,169,.12) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero-glow2 {
+  position: absolute; bottom: -80px; left: 5%; width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(47,56,153,.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero-inner { max-width: 1200px; margin: 0 auto; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; position: relative; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--teal-dim); border: 1px solid var(--teal-border);
+  color: var(--teal); border-radius: 20px; padding: 5px 14px;
+  font-size: .75rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  margin-bottom: 22px;
+}
+.hero-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(1.4); } }
+h1.htitle {
+  font-family: var(--serif); font-weight: 300;
+  font-size: clamp(2.6rem, 5vw, 4.2rem);
+  line-height: 1.08; letter-spacing: -.02em; color: var(--navy-dk);
+  margin-bottom: 22px;
+}
+h1.htitle em { font-style: italic; color: var(--teal); }
+h1.htitle strong { font-weight: 600; }
+.hsub { font-size: .97rem; font-weight: 400; color: var(--text2); max-width: 480px; line-height: 1.75; margin-bottom: 36px; }
+.hctas { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.hero-metrics { display: flex; gap: 24px; margin-top: 40px; flex-wrap: wrap; }
+.hm { display: flex; flex-direction: column; }
+.hm-n { font-family: var(--serif); font-size: 2rem; font-weight: 600; color: var(--navy); line-height: 1; }
+.hm-l { font-size: .72rem; color: var(--muted); margin-top: 2px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+.hm-sep { width: 1px; background: var(--border2); align-self: stretch; }
+
+/* HERO CALL CARD */
+.hero-card-wrap { position: relative; }
+.hcard {
+  background: var(--white); border-radius: var(--radius); padding: 24px 26px;
+  box-shadow: 0 8px 40px rgba(47,56,153,.12), 0 2px 8px rgba(0,0,0,.05);
+  border: 1px solid var(--border); position: relative;
+}
+.hcard-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.agent-av {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--teal), #00d4c8);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-family: var(--serif); font-size: 1.1rem; font-weight: 600; flex-shrink: 0;
+}
+.agent-info { display: flex; align-items: center; gap: 10px; }
+.agent-name { font-size: .92rem; font-weight: 600; color: var(--text); }
+.agent-role { font-size: .7rem; color: var(--muted); }
+.live-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: #e8f7ed; color: var(--green); border-radius: 20px;
+  padding: 4px 10px; font-size: .68rem; font-weight: 600; letter-spacing: .04em;
+}
+.live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 1.4s infinite; }
+.waveform { display: flex; align-items: center; gap: 2.5px; height: 36px; margin-bottom: 16px; }
+.wbar { width: 3px; border-radius: 2px; background: var(--teal); opacity: .7; animation: wv var(--d,1s) var(--dl,0s) ease-in-out infinite alternate; }
+@keyframes wv { from { height: 3px; opacity: .3; } to { height: var(--h,20px); opacity: .9; } }
+.cline { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
+.clbl { font-size: .66rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; margin-top: 3px; min-width: 52px; color: var(--muted); font-family: var(--mono); }
+.clbl.ag { color: var(--teal); }
+.cbbl { font-size: .85rem; line-height: 1.5; color: var(--text); }
+.cbbl.typ::after { content: '▌'; animation: blink .7s infinite; color: var(--teal); }
+@keyframes blink { 50% { opacity: 0; } }
+.hcard-ftr { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 8px; }
+.xtag { background: var(--teal-dim); color: var(--teal); border: 1px solid var(--teal-border); border-radius: 6px; padding: 3px 10px; font-size: .65rem; font-weight: 600; font-family: var(--mono); }
+.ctimer { font-family: var(--mono); font-size: .7rem; color: var(--muted); }
+
+/* floating mini card */
+.mini-card {
+  position: absolute; background: var(--white); border-radius: 10px;
+  padding: 12px 16px; box-shadow: 0 8px 24px rgba(47,56,153,.14);
+  border: 1px solid var(--border); font-size: .8rem;
+}
+.mini-card.mc1 { bottom: -20px; left: -30px; display: flex; align-items: center; gap: 10px; }
+.mini-card.mc2 { top: -16px; right: -20px; text-align: center; }
+.mc-ico { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .95rem; }
+.mc-t { font-weight: 700; font-size: .95rem; color: var(--navy-dk); }
+.mc-l { font-size: .65rem; color: var(--muted); margin-top: 1px; }
+
+/* ── TRUST BAR ───────────────────────────────── */
+.trust-bar { background: var(--white); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 18px 60px; }
+.trust-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.trust-label { font-size: .72rem; font-weight: 600; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.trust-logos { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; }
+.trust-logo { font-size: .9rem; font-weight: 700; color: var(--muted2); }
+.trust-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+.tbadge { font-size: .68rem; font-weight: 600; color: var(--teal); background: var(--teal-dim); border: 1px solid var(--teal-border); border-radius: 6px; padding: 4px 10px; font-family: var(--mono); }
+
+/* ── STAT STRIP ──────────────────────────────── */
+.stat-strip { background: var(--navy-dk); display: flex; justify-content: center; }
+.si { flex: 1; max-width: 280px; padding: 36px 40px; text-align: center; border-right: 1px solid rgba(255,255,255,.1); }
+.si:last-child { border-right: none; }
+.sn { font-family: var(--serif); font-size: clamp(2rem, 3.5vw, 3rem); font-weight: 300; color: var(--teal); line-height: 1; }
+.sl { font-size: .72rem; color: rgba(255,255,255,.55); letter-spacing: .06em; margin-top: 7px; text-transform: uppercase; font-weight: 500; }
+.ssrc { font-family: var(--mono); font-size: .58rem; color: rgba(255,255,255,.25); margin-top: 4px; }
+
+/* ── SECTION COMMONS ─────────────────────────── */
+.section { padding: 100px 60px; max-width: 1200px; margin: 0 auto; }
+.section-bg { padding: 100px 0; }
+.section-bg-white { background: var(--white); }
+.section-bg-gray { background: var(--bg); }
+.section-bg-navy { background: var(--navy-dk); }
+.inner { max-width: 1200px; margin: 0 auto; padding: 0 60px; }
+.slabel {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: .72rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 14px;
+}
+.slabel::before { content: ''; width: 20px; height: 2px; background: var(--teal); border-radius: 2px; }
+h2.stitle { font-family: var(--serif); font-weight: 300; font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1.15; letter-spacing: -.015em; color: var(--navy-dk); margin-bottom: 14px; }
+h2.stitle strong { font-weight: 600; }
+h2.stitle-light { color: #fff; }
+.ssub { font-size: .95rem; color: var(--text2); max-width: 520px; line-height: 1.75; }
+.divider { width: 100%; height: 1px; background: var(--border); }
+
+/* ── HOW IT WORKS ────────────────────────────── */
+.steps-hdr { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 48px; flex-wrap: wrap; gap: 24px; }
+.steps-track {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+  background: var(--border); gap: 1px;
+}
+.sc {
+  background: var(--white); padding: 26px 20px; cursor: pointer;
+  transition: background .25s; position: relative;
+}
+.sc:hover { background: var(--blue-bg); }
+.sc.act { background: linear-gradient(160deg, rgba(47,56,153,.06) 0%, var(--white) 100%); border-bottom: 2px solid var(--navy); }
+.snum { font-family: var(--mono); font-size: .62rem; letter-spacing: .12em; color: var(--muted); margin-bottom: 10px; }
+.sc.act .snum { color: var(--navy); font-weight: 600; }
+.stit { font-size: .88rem; font-weight: 600; color: var(--text); margin-bottom: 5px; line-height: 1.3; }
+.sc.act .stit { color: var(--navy); }
+.sdsc { font-size: .76rem; color: var(--muted); line-height: 1.5; }
+.sbadge { position: absolute; top: 10px; right: 10px; background: var(--teal-dim); color: var(--teal); border: 1px solid var(--teal-border); border-radius: 4px; padding: 2px 7px; font-size: .58rem; font-weight: 600; font-family: var(--mono); opacity: 0; transition: opacity .3s; }
+.sc.act .sbadge { opacity: 1; }
+.spbar { height: 3px; background: var(--border); overflow: hidden; }
+.spinner { height: 100%; background: linear-gradient(90deg, var(--navy), var(--teal)); width: 0; transition: width 4.2s linear; }
+.sdetail {
+  margin-top: 2px; background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 40px 44px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 52px; align-items: center;
+  box-shadow: 0 2px 12px rgba(47,56,153,.06);
+}
+.sd-t { font-family: var(--serif); font-size: 1.6rem; font-weight: 400; color: var(--navy-dk); margin-bottom: 10px; line-height: 1.25; }
+.sd-d { font-size: .88rem; color: var(--text2); line-height: 1.75; margin-bottom: 18px; }
+.dtags { display: flex; flex-wrap: wrap; gap: 7px; }
+.dtag { background: var(--teal-dim); color: var(--teal); border: 1px solid var(--teal-border); border-radius: 6px; padding: 4px 11px; font-family: var(--mono); font-size: .62rem; font-weight: 500; }
+
+/* ── SOLUTIONS ───────────────────────────────── */
+.sol-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 52px; }
+.sol {
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 36px 32px; transition: all .25s; position: relative; overflow: hidden;
+}
+.sol:hover { border-color: var(--teal-border); box-shadow: 0 8px 32px rgba(0,178,169,.1); transform: translateY(-2px); }
+.sol::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--teal); opacity: 0; transition: opacity .25s; }
+.sol:hover::before { opacity: 1; }
+.sol.gold::before { background: #f59e0b; }
+.sico { width: 46px; height: 46px; border-radius: 10px; background: var(--teal-dim); border: 1px solid var(--teal-border); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 18px; }
+.sol.gold .sico { background: rgba(245,158,11,.1); border-color: rgba(245,158,11,.25); }
+.sey { font-size: .68rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--teal); margin-bottom: 6px; }
+.sol.gold .sey { color: #d97706; }
+.stl { font-family: var(--serif); font-size: 1.45rem; font-weight: 600; color: var(--navy-dk); margin-bottom: 10px; line-height: 1.2; }
+.sdd { font-size: .85rem; color: var(--text2); line-height: 1.7; margin-bottom: 18px; }
+.sli { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+.sli li { display: flex; align-items: flex-start; gap: 8px; font-size: .8rem; color: var(--text2); }
+.sli li::before { content: '✓'; color: var(--teal); flex-shrink: 0; font-weight: 700; margin-top: 1px; }
+.sol.gold .sli li::before { color: #d97706; }
+
+/* ── EHR INTEGRATION ─────────────────────────── */
+.ehr-layout { display: grid; grid-template-columns: 1fr 1.1fr; gap: 72px; align-items: center; margin-top: 56px; }
+.ehr-stds { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 28px; }
+.estd { font-size: .68rem; font-weight: 600; color: var(--teal); background: var(--teal-dim); border: 1px solid var(--teal-border); border-radius: 6px; padding: 4px 12px; font-family: var(--mono); }
+.ehr-bullets { display: flex; flex-direction: column; gap: 16px; }
+.ehr-bullet { display: flex; gap: 14px; align-items: flex-start; }
+.ehr-bico { width: 36px; height: 36px; border-radius: 8px; background: var(--teal-dim); border: 1px solid var(--teal-border); display: flex; align-items: center; justify-content: center; font-size: .95rem; flex-shrink: 0; }
+.ehr-bt { font-size: .88rem; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.ehr-bd { font-size: .78rem; color: var(--muted); line-height: 1.5; }
+.ehr-diagram {
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 28px; box-shadow: 0 4px 24px rgba(47,56,153,.08);
+}
+.ehr-center { display: flex; flex-direction: column; align-items: center; margin-bottom: 22px; }
+.ehr-core {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--navy), var(--teal));
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 1.1rem;
+  box-shadow: 0 4px 20px rgba(47,56,153,.3);
+}
+.ehr-core-label { font-size: .65rem; font-weight: 600; color: var(--muted); margin-top: 8px; text-transform: uppercase; letter-spacing: .1em; }
+.ehr-note { font-size: .65rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); text-align: center; margin-bottom: 12px; }
+.ehr-nodes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.enode { background: var(--sidebar); border: 1px solid var(--border); border-radius: 8px; padding: 10px 8px; text-align: center; transition: all .25s; cursor: default; }
+.enode:hover { border-color: var(--teal-border); background: var(--teal-dim); transform: translateY(-2px); }
+.enode-name { font-size: .82rem; font-weight: 700; margin-bottom: 2px; }
+.enode-share { font-size: .58rem; color: var(--muted); font-family: var(--mono); }
+.ehr-conn { margin-top: 14px; display: flex; align-items: center; gap: 10px; font-size: .65rem; font-weight: 600; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+.ehr-conn::before, .ehr-conn::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.ehr-feats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; }
+.ef { background: var(--sidebar); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; display: flex; align-items: flex-start; gap: 8px; }
+.ef-ico { font-size: .9rem; flex-shrink: 0; }
+.ef-t { font-size: .78rem; font-weight: 600; color: var(--text); margin-bottom: 1px; }
+.ef-d { font-size: .68rem; color: var(--muted); line-height: 1.4; }
+
+/* ── DEMO VIDEOS ─────────────────────────────── */
+.demo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 52px; }
+.dc {
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; cursor: pointer; transition: all .3s;
+}
+.dc:hover { border-color: var(--teal-border); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,178,169,.15); }
+.dthumb { height: 160px; background: linear-gradient(135deg, var(--navy-dk), var(--navy)); position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.dwave { display: flex; align-items: center; gap: 2.5px; height: 44px; position: absolute; }
+.dwave span { display: block; width: 2.5px; border-radius: 2px; background: rgba(255,255,255,.3); animation: wv var(--d) var(--dl) ease-in-out infinite alternate; }
+.pbt { width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,.15); border: 2px solid rgba(255,255,255,.5); display: flex; align-items: center; justify-content: center; position: relative; z-index: 2; transition: all .3s; backdrop-filter: blur(10px); }
+.pbt::after { content: ''; border-left: 16px solid #fff; border-top: 9px solid transparent; border-bottom: 9px solid transparent; margin-left: 3px; }
+.dc:hover .pbt { background: rgba(255,255,255,.25); transform: scale(1.1); }
+.dinfo { padding: 18px 20px; }
+.dcat { font-size: .65rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--teal); margin-bottom: 5px; }
+.dtit { font-family: var(--serif); font-size: 1rem; font-weight: 600; color: var(--navy-dk); margin-bottom: 5px; line-height: 1.3; }
+.ddesc { font-size: .78rem; color: var(--muted); line-height: 1.5; }
+.ddur { margin-top: 8px; font-family: var(--mono); font-size: .62rem; color: var(--muted); }
+
+/* ── PRODUCT DASHBOARD ───────────────────────── */
+.dash-layout { display: grid; grid-template-columns: 1fr 1.7fr; gap: 56px; align-items: start; margin-top: 52px; }
+.dash-feats { display: flex; flex-direction: column; gap: 12px; }
+.df { display: flex; gap: 14px; padding: 16px 18px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: all .25s; background: var(--white); }
+.df:hover, .df.act { border-color: var(--teal-border); background: var(--teal-dim); }
+.df.act { border-left: 3px solid var(--teal); }
+.dficon { width: 36px; height: 36px; border-radius: 8px; background: var(--teal-dim); border: 1px solid var(--teal-border); display: flex; align-items: center; justify-content: center; font-size: .95rem; flex-shrink: 0; }
+.dft { font-size: .88rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.dfd { font-size: .76rem; color: var(--muted); line-height: 1.45; }
+
+/* PRODUCT MOCKUP */
+.real-dash { background: #fff; border-radius: var(--radius); overflow: hidden; box-shadow: 0 8px 40px rgba(47,56,153,.15); border: 1px solid var(--border); }
+.rd-body { display: flex; height: 460px; }
+.rd-sidebar { width: 196px; background: #f8f9fc; border-right: 1px solid #eef0f4; display: flex; flex-direction: column; flex-shrink: 0; }
+.rd-logo-area { padding: 14px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #eef0f4; }
+.rd-logo-ico { width: 28px; height: 28px; background: var(--navy); border-radius: 7px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .68rem; font-weight: 700; }
+.rd-logo-t { font-size: .85rem; font-weight: 700; color: #1a2035; }
+.rd-clinic { padding: 10px 16px; border-bottom: 1px solid #eef0f4; }
+.rd-c-ico { width: 24px; height: 24px; background: #e85d3e; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: .62rem; font-weight: 700; margin-right: 6px; vertical-align: middle; }
+.rd-c-name { font-size: .78rem; font-weight: 600; color: #1a2035; }
+.rd-c-sub { font-size: .67rem; color: #8898b4; padding-left: 30px; margin-top: 1px; }
+.rd-sec { font-size: .62rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #8898b4; padding: 10px 16px 4px; }
+.rd-item { padding: 8px 16px; font-size: .78rem; color: #6b7d99; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all .2s; }
+.rd-item.act { background: #e8f7f6; color: #00b2a9; font-weight: 600; border-right: 3px solid #00b2a9; }
+.rd-signout { margin-top: auto; padding: 10px 16px; font-size: .72rem; color: #8898b4; display: flex; align-items: center; gap: 8px; border-top: 1px solid #eef0f4; }
+.rd-main { flex: 1; background: #f4f6fb; padding: 16px; overflow: auto; }
+.rd-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+.rd-title { font-size: 1rem; font-weight: 700; color: #1a2035; }
+.rd-period { background: #fff; border: 1px solid #e0e4ef; border-radius: 6px; padding: 4px 10px; font-size: .68rem; color: #6b7d99; font-family: var(--mono); }
+.rd-export { background: #1a73e8; color: #fff; border: none; border-radius: 6px; padding: 5px 12px; font-size: .68rem; font-weight: 600; cursor: pointer; }
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+.kc { background: #fff; border-radius: 8px; padding: 12px; position: relative; overflow: hidden; }
+.kc-ico { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .8rem; margin-bottom: 6px; }
+.kc-badge { position: absolute; top: 8px; right: 8px; background: #e8f7ed; color: #2e7d32; font-size: .56rem; font-family: var(--mono); padding: 2px 5px; border-radius: 3px; font-weight: 600; }
+.kc-label { font-size: .62rem; color: #8898b4; margin-bottom: 2px; }
+.kc-num { font-size: 1.15rem; font-weight: 700; color: #1a2035; }
+.rd-chart { background: #fff; border-radius: 8px; padding: 14px; }
+.rdb-t { font-size: .78rem; font-weight: 600; color: #1a2035; margin-bottom: 10px; }
+.oleg { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.ol { display: flex; align-items: center; gap: 4px; font-size: .62rem; color: #6b7d99; }
+.oldot { width: 7px; height: 7px; border-radius: 50%; }
+.chart-area { height: 80px; display: flex; align-items: flex-end; justify-content: space-around; }
+.cgrp { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.cgrp-bars { display: flex; gap: 2px; align-items: flex-end; }
+.cbar { width: 8px; border-radius: 2px 2px 0 0; }
+.cgrp-lbl { font-size: .6rem; color: #8898b4; }
+
+/* ── PROOF ───────────────────────────────────── */
+.proof-inner { display: grid; grid-template-columns: 1fr 2fr; gap: 72px; align-items: center; }
+.pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.1); border-radius: var(--radius); overflow: hidden; }
+.pstat { background: rgba(255,255,255,.06); padding: 28px; text-align: center; }
+.pn { font-family: var(--serif); font-size: clamp(2.2rem, 3.5vw, 3rem); font-weight: 300; color: var(--teal); line-height: 1; }
+.pl { font-size: .7rem; color: rgba(255,255,255,.6); margin-top: 6px; line-height: 1.4; }
+.psrc { font-family: var(--mono); font-size: .56rem; color: rgba(255,255,255,.25); margin-top: 4px; }
+
+/* ── CTA ─────────────────────────────────────── */
+.cta-section { padding: 100px 60px; text-align: center; background: linear-gradient(145deg, #f0f2f7, #e8eaf5); }
+.cta-section h2 { font-family: var(--serif); font-weight: 300; font-size: clamp(2.2rem, 4.5vw, 4rem); line-height: 1.15; color: var(--navy-dk); margin-bottom: 16px; }
+.cta-section h2 em { font-style: italic; color: var(--teal); }
+.cta-section p { font-size: .96rem; color: var(--text2); max-width: 460px; margin: 0 auto 44px; line-height: 1.75; }
+.ctacards { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; margin-top: 44px; }
+.ctac { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px 28px; max-width: 280px; text-align: center; transition: all .3s; box-shadow: 0 2px 12px rgba(47,56,153,.06); }
+.ctac:hover { border-color: var(--teal-border); transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,178,169,.12); }
+.ctac-ico { font-size: 1.6rem; margin-bottom: 12px; }
+.ctac-t { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; color: var(--navy-dk); margin-bottom: 7px; }
+.ctac-d { font-size: .78rem; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+.pdisp { font-family: var(--mono); font-size: 1.05rem; color: var(--navy); font-weight: 600; margin-bottom: 6px; }
+.ctalink { color: var(--teal); font-size: .76rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: gap .2s; }
+.ctalink:hover { gap: 8px; }
+.ctac-hl { border-color: var(--teal-border); background: linear-gradient(160deg, rgba(0,178,169,.05) 0%, #fff 100%); }
+
+/* ── FOOTER ──────────────────────────────────── */
+footer { background: var(--navy-dk); padding: 52px 60px; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 32px; }
+.flogo { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 8px; }
+.flogo-ico { width: 30px; height: 30px; border-radius: 7px; background: var(--navy); border: 1px solid rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; color: #fff; font-size: .7rem; font-weight: 700; }
+.flogo-t { font-size: 1rem; font-weight: 700; color: #fff; }
+.ftag { font-size: .72rem; color: rgba(255,255,255,.45); }
+.fcol h4 { font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.45); margin-bottom: 14px; }
+.fcol ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.fcol a { font-size: .82rem; color: rgba(255,255,255,.65); text-decoration: none; transition: color .2s; }
+.fcol a:hover { color: var(--teal); }
+.fcopy { width: 100%; border-top: 1px solid rgba(255,255,255,.08); padding-top: 24px; font-size: .72rem; color: rgba(255,255,255,.3); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+
+/* ── MODAL ───────────────────────────────────── */
+.movl { position: fixed; inset: 0; z-index: 900; background: rgba(30,37,99,.6); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .3s; }
+.movl.open { opacity: 1; pointer-events: all; }
+.mbox { background: var(--white); border-radius: 16px; padding: 44px; max-width: 460px; width: 90%; text-align: center; position: relative; transform: scale(.95); transition: transform .3s; box-shadow: 0 24px 60px rgba(30,37,99,.2); }
+.movl.open .mbox { transform: scale(1); }
+.mt { font-family: var(--serif); font-size: 1.8rem; font-weight: 600; color: var(--navy-dk); margin-bottom: 8px; }
+.ms { font-size: .86rem; color: var(--text2); margin-bottom: 24px; line-height: 1.6; }
+.mi { width: 100%; background: var(--bg); border: 1px solid var(--border2); color: var(--text); padding: 12px 16px; border-radius: 10px; font-family: var(--sans); font-size: .9rem; outline: none; transition: border-color .2s; margin-bottom: 11px; }
+.mi:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(47,56,153,.1); }
+.mcl { position: absolute; top: 14px; right: 18px; background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; }
+.mnote { font-size: .7rem; color: var(--muted); margin-top: 9px; }
+.mhr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+/* ── RESPONSIVE ──────────────────────────────── */
+@media (max-width: 1060px) {
+  nav { padding: 0 32px; }
+  .hero { padding: 100px 32px 60px; }
+  .hero-inner { grid-template-columns: 1fr; gap: 48px; }
+  .hero-card-wrap .mini-card { display: none; }
+  .section { padding: 80px 32px; }
+  .inner { padding: 0 32px; }
+  .section-bg { padding: 80px 0; }
+  .trust-bar { padding: 16px 32px; }
+  .steps-track { grid-template-columns: 1fr 1fr; }
+  .sol-grid { grid-template-columns: 1fr; }
+  .ehr-layout { grid-template-columns: 1fr; gap: 40px; }
+  .dash-layout { grid-template-columns: 1fr; }
+  .proof-inner { grid-template-columns: 1fr; gap: 40px; }
+  .cta-section { padding: 80px 32px; }
+  footer { padding: 40px 32px; }
+  .sdetail { grid-template-columns: 1fr; gap: 28px; }
+}
+@media (max-width: 640px) {
+  h1.htitle { font-size: 2.2rem; }
+  .hctas { flex-direction: column; width: 100%; }
+  .btnp, .btns, .btnteal { width: 100%; text-align: center; justify-content: center; }
+  .stat-strip { flex-direction: column; }
+  .si { border-right: none; border-bottom: 1px solid rgba(255,255,255,.1); }
+  .si:last-child { border-bottom: none; }
+  .steps-track { grid-template-columns: 1fr; }
+  .demo-grid { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+  .pgrid { grid-template-columns: 1fr; }
+  .ctacards { flex-direction: column; align-items: center; }
+  .ehr-nodes { grid-template-columns: repeat(2, 1fr); }
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  footer { flex-direction: column; }
+  .trust-inner { flex-direction: column; gap: 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="logo">
+    <div class="logo-ico">
+      <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- earpieces -->
+        <circle cx="9" cy="6" r="2" fill="white"/>
+        <circle cx="23" cy="6" r="2" fill="white"/>
+        <!-- chest piece arc -->
+        <path d="M9 6 C9 6 7 6 7 11 C7 16 11 19 16 19 C21 19 25 16 25 11 C25 6 23 6 23 6" stroke="white" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <!-- tube down -->
+        <path d="M25 11 C25 11 25 20 25 22 C25 25.5 22.5 27.5 19.5 27.5 C16.5 27.5 14.5 25.2 14.5 22.5 L14.5 21" stroke="white" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <!-- diaphragm circle -->
+        <circle cx="14.5" cy="21" r="3" fill="none" stroke="white" stroke-width="2"/>
+        <!-- center dot -->
+        <circle cx="14.5" cy="21" r="1.2" fill="white"/>
+      </svg>
+    </div>
+    <span class="logo-text">Vaklab AI</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#solutions">Solutions</a></li>
+    <li><a href="#ehr">EHR Integration</a></li>
+    <li><a href="#demo">Demo</a></li>
+
+    <li><a href="https://www.vaklabai.com/faq" target="_blank">FAQ</a></li>
+  </ul>
+  <div class="nright">
+    <a href="tel:+18664401586" class="nphone">📞 (866) 440-1586</a>
+    <button class="ndemo" onclick="openModal()">Request Demo</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero" id="home">
+  <div class="hero-bg-dots"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eyebrow">Voice-to-Workflow for Healthcare</div>
+      <h1 class="htitle">Never miss <em>another</em><br><strong>patient call again.</strong></h1>
+      <p class="hsub">Sierra answers instantly, books the visit, verifies insurance, and starts intake — all before your staff touches the chart. Day or night. Every call.</p>
+      <div class="hctas">
+        <button class="btnp" onclick="openModal()">Call Sierra Live</button>
+        <a href="#how" class="btns"><span>▶</span> See How It Works</a>
+      </div>
+      <div class="hero-metrics">
+        <div class="hm"><div class="hm-n">&lt;45s</div><div class="hm-l">Time to booking</div></div>
+        <div class="hm-sep"></div>
+        <div class="hm"><div class="hm-n">24/7</div><div class="hm-l">Always answering</div></div>
+        <div class="hm-sep"></div>
+        <div class="hm"><div class="hm-n">$0</div><div class="hm-l">Hold time cost</div></div>
+      </div>
+    </div>
+    <div class="hero-card-wrap">
+      <!-- floating badges -->
+      <div class="mini-card mc2">
+        <div class="mc-t" style="color:var(--green)">✓ Booked</div>
+        <div class="mc-l">Appointment confirmed</div>
+      </div>
+      <!-- main call card -->
+      <div class="hcard">
+        <div class="hcard-hdr">
+          <div class="agent-info">
+            <div class="agent-av">S</div>
+            <div>
+              <div class="agent-name">Sierra</div>
+              <div class="agent-role">Vaklab AI Voice Agent</div>
+            </div>
+          </div>
+          <div class="live-badge"><span class="live-dot"></span>LIVE CALL</div>
+        </div>
+        <div class="waveform" id="heroWave"></div>
+        <div class="cline"><span class="clbl">Patient</span><span class="cbbl">"Hi, I need to schedule a fertility consult for next week."</span></div>
+        <div class="cline"><span class="clbl ag">Sierra</span><span class="cbbl">"Of course! Let me check availability with Dr. Chen. Can I verify your date of birth first?"</span></div>
+        <div class="cline"><span class="clbl ag">Sierra</span><span class="cbbl typ" id="typingLine"></span></div>
+        <div class="hcard-ftr">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="xtag">BOOKING</span>
+            <span class="xtag">INTAKE QUEUED</span>
+            <span class="xtag">EHR SYNC</span>
+          </div>
+          <span class="ctimer" id="callTimer">00:38</span>
+        </div>
+      </div>
+      <div class="mini-card mc1">
+        <div class="mc-ico" style="background:var(--teal-dim)">📋</div>
+        <div><div class="mc-t">Intake sent</div><div class="mc-l">Portal link delivered</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <div class="trust-inner">
+    <div class="trust-label">Trusted by healthcare teams</div>
+    <div class="trust-logos">
+      <span class="trust-logo">UTHealth Clinic</span>
+      <span class="trust-logo" style="opacity:.45">Apex Fertility</span>
+      <span class="trust-logo" style="opacity:.45">Valley Medical</span>
+      <span class="trust-logo" style="opacity:.45">Clearview Dental</span>
+    </div>
+    <div class="trust-badges">
+      <span class="tbadge">HIPAA</span>
+      <span class="tbadge">FHIR R4</span>
+      <span class="tbadge">HL7 v2</span>
+      <span class="tbadge">SOC 2</span>
+    </div>
+  </div>
+</div>
+
+<!-- STAT STRIP -->
+<div class="stat-strip">
+  <div class="si"><div class="sn">23%</div><div class="sl">Avg no-show rate</div></div>
+  <div class="si"><div class="sn">$200+</div><div class="sl">Lost per missed slot</div></div>
+  <div class="si"><div class="sn">40%</div><div class="sl">Reduction w/ reminders</div></div>
+  <div class="si"><div class="sn">&lt;45s</div><div class="sl">Time to confirmed booking</div><div class="ssrc">Vaklab AI Data</div></div>
+</div>
+
+<div class="divider"></div>
+
+<!-- HOW IT WORKS -->
+<div class="section" id="how">
+  <div class="steps-hdr">
+    <div>
+      <div class="slabel">The Workflow</div>
+      <h2 class="stitle">Every call becomes a <strong>tracked patient workflow.</strong></h2>
+    </div>
+    <p class="ssub">From live voice to booking, portal entry, intake chat, EHR sync, and dashboard — one seamless automated handoff.</p>
+  </div>
+  <div class="steps-track" id="stTrack">
+    <div class="sc act" onclick="setStep(0)"><div class="snum">01</div><div class="stit">Live Call Intake</div><div class="sdsc">Sierra answers and verifies the caller.</div><div class="sbadge">&lt;45 sec</div></div>
+    <div class="sc" onclick="setStep(1)"><div class="snum">02</div><div class="stit">Appointment Booked</div><div class="sdsc">Slot confirmed in the same conversation.</div><div class="sbadge">Real-time</div></div>
+    <div class="sc" onclick="setStep(2)"><div class="snum">03</div><div class="stit">Intake Link Sent</div><div class="sdsc">Branded portal delivered before call ends.</div><div class="sbadge">Instant</div></div>
+    <div class="sc" onclick="setStep(3)"><div class="snum">04</div><div class="stit">Pre-Visit Chat</div><div class="sdsc">Patient completes forms conversationally.</div><div class="sbadge">Chat intake</div></div>
+    <div class="sc" onclick="setStep(4)"><div class="snum">05</div><div class="stit">EHR + Dashboard</div><div class="sdsc">Data synced to EHR. Staff see exceptions only.</div><div class="sbadge">Auto-sync</div></div>
+  </div>
+  <div class="spbar"><div class="spinner" id="spBar"></div></div>
+  <div class="sdetail" id="stepDetail">
+    <div>
+      <div class="sd-t" id="dTitle">Sierra answers and verifies the caller.</div>
+      <p class="sd-d" id="dDesc">The patient reaches a live voice agent immediately. Sierra verifies intent, pulls the right context, and starts the workflow in real time — no hold music, no voicemail, zero wait.</p>
+      <div class="dtags" id="dTags">
+        <span class="dtag">24/7 COVERAGE</span><span class="dtag">INSTANT ANSWER</span><span class="dtag">CONTEXT-AWARE</span><span class="dtag">ZERO HOLD TIME</span>
+      </div>
+    </div>
+    <div>
+      <div class="hcard" style="max-width:380px">
+        <div class="hcard-hdr">
+          <div class="agent-info"><div class="agent-av">S</div><div><div class="agent-name">Sierra</div><div class="agent-role">Connected</div></div></div>
+          <div class="live-badge"><span class="live-dot"></span>LIVE</div>
+        </div>
+        <div class="waveform" id="stepWave"></div>
+        <div class="cline"><span class="clbl ag">Sierra</span><span class="cbbl">"Hi! I'm Sierra with Vaklab AI. How can I help you today?"</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- SOLUTIONS -->
+<div class="section-bg section-bg-white" id="solutions">
+  <div class="inner">
+    <div class="slabel">Built For Your Specialty</div>
+    <h2 class="stitle">One platform. <strong>Every clinical use case.</strong></h2>
+    <p class="ssub" style="margin-top:8px">From fertility consults to debt recovery — Sierra handles the conversation so your team handles the care.</p>
+    <div class="sol-grid">
+      <div class="sol">
+        <div class="sico">🏥</div>
+        <div class="sey">Inbound · Scheduling</div>
+        <div class="stl">Clinic Appointment Booking</div>
+        <div class="sdd">Sierra is your 24/7 front desk — answering every inbound call, matching provider availability, routing to the right specialist, and kicking off intake before staff ever step in.</div>
+        <ul class="sli">
+          <li>Fertility, dental, primary care &amp; specialist workflows</li>
+          <li>Real-time provider availability matching</li>
+          <li>Insurance verification on the same call</li>
+          <li>Multilingual patient support</li>
+        </ul>
+      </div>
+      <div class="sol">
+        <div class="sico">📋</div>
+        <div class="sey">Pre-Visit · Workflow</div>
+        <div class="stl">Pre-Visit Task Completion</div>
+        <div class="sdd">After booking, patients complete intake via guided chat. Forms, uploads, and history collected before arrival — staff inherit a complete packet with data written back to the EHR automatically.</div>
+        <ul class="sli">
+          <li>Conversational form collection — no PDF paperwork</li>
+          <li>Document upload via branded patient portal</li>
+          <li>Day-of briefing and digital check-in</li>
+          <li>Data auto-written to patient chart via FHIR</li>
+        </ul>
+      </div>
+      <div class="sol gold">
+        <div class="sico">💰</div>
+        <div class="sey">Outbound · Revenue</div>
+        <div class="stl">Debt Collection Calls</div>
+        <div class="sdd">Sierra makes empathetic, compliant outbound calls for past-due balances — offering payment options, capturing commitments, and escalating to staff only when needed.</div>
+        <ul class="sli">
+          <li>HIPAA &amp; FDCPA-aware conversation flows</li>
+          <li>Payment plan offer &amp; verbal commitment capture</li>
+          <li>Auto-escalation on disputes or complex cases</li>
+          <li>Full outcome tracking in analytics dashboard</li>
+        </ul>
+      </div>
+      <div class="sol gold">
+        <div class="sico">🔬</div>
+        <div class="sey">Outbound · Clinical</div>
+        <div class="stl">Preventive Care Screenings</div>
+        <div class="sdd">Sierra proactively reaches patients due for screenings or gap closure — turning missed care opportunities into scheduled visits at scale with full campaign outcome tracking.</div>
+        <ul class="sli">
+          <li>HEDIS gap closure &amp; quality metric lift</li>
+          <li>Mammography, colonoscopy, A1C reminder campaigns</li>
+          <li>Warm handoff to scheduling on engagement</li>
+          <li>Campaign outcome tracking per patient cohort</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- EHR INTEGRATION -->
+<div class="section-bg section-bg-gray" id="ehr">
+  <div class="inner">
+    <div class="slabel">EHR Integration</div>
+    <h2 class="stitle">Sierra syncs directly to <strong>your EHR</strong> — no manual entry.</h2>
+    <p class="ssub" style="margin-top:8px">Every call outcome, booking, and intake response written back automatically. Staff open the chart to a completed record.</p>
+    <div class="ehr-layout">
+      <div>
+        <p style="font-size:.9rem;color:var(--text2);line-height:1.75;margin-bottom:6px">Every call outcome, booking, intake response, and patient interaction is written back to your EHR automatically — through FHIR R4 and HL7 v2 standards. No double-entry. No gaps.</p>
+        <div class="ehr-stds">
+          <span class="estd">FHIR R4</span><span class="estd">HL7 v2</span><span class="estd">REST API</span><span class="estd">HIPAA BAA</span><span class="estd">OAUTH 2.0</span><span class="estd">TLS 1.2+</span>
+        </div>
+        <div class="ehr-bullets">
+          <div class="ehr-bullet">
+            <div class="ehr-bico">📅</div>
+            <div><div class="ehr-bt">Real-Time Appointment Sync</div><div class="ehr-bd">Sierra checks live provider availability from your EHR and writes confirmed bookings directly back — no double-entry, no lag.</div></div>
+          </div>
+          <div class="ehr-bullet">
+            <div class="ehr-bico">👤</div>
+            <div><div class="ehr-bt">Patient Demographics Retrieval</div><div class="ehr-bd">Sierra pulls existing patient records to verify identity during the call, then updates the record with new intake data collected.</div></div>
+          </div>
+          <div class="ehr-bullet">
+            <div class="ehr-bico">🔐</div>
+            <div><div class="ehr-bt">Insurance Eligibility Verification</div><div class="ehr-bd">Real-time eligibility checks against payer systems during the call — flagged and logged before the patient ever arrives.</div></div>
+          </div>
+          <div class="ehr-bullet">
+            <div class="ehr-bico">📄</div>
+            <div><div class="ehr-bt">Pre-Visit Intake Write-Back</div><div class="ehr-bd">Chat-collected responses are structured and pushed to the patient chart as discrete FHIR resources automatically.</div></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="ehr-diagram">
+          <div class="ehr-center">
+            <div class="ehr-core">VL</div>
+            <div class="ehr-core-label">Vaklab AI · Sierra Engine</div>
+          </div>
+          <div class="ehr-note">Integrated EHR Systems</div>
+          <div class="ehr-nodes">
+            <div class="enode"><div class="enode-name" style="color:var(--teal)">Epic</div></div>
+            <div class="enode"><div class="enode-name" style="color:#1a73e8">Oracle Health</div></div>
+            <div class="enode"><div class="enode-name" style="color:#2e7d32">athenahealth</div></div>
+            <div class="enode"><div class="enode-name" style="color:#d97706">eClinicalWorks</div></div>
+            <div class="enode"><div class="enode-name" style="color:var(--navy)">NextGen</div></div>
+            <div class="enode"><div class="enode-name" style="color:var(--muted)">Custom / Legacy</div></div>
+          </div>
+          <div class="ehr-conn">Bidirectional · Real-time · HIPAA compliant</div>
+          <div class="ehr-feats">
+            <div class="ef"><div class="ef-ico">⚡</div><div><div class="ef-t">Live Availability</div><div class="ef-d">Reads schedules in real time during call</div></div></div>
+            <div class="ef"><div class="ef-ico">📝</div><div><div class="ef-t">Intake Write-Back</div><div class="ef-d">Discrete FHIR resources to chart</div></div></div>
+            <div class="ef"><div class="ef-ico">🛡️</div><div><div class="ef-t">Insurance Check</div><div class="ef-d">Real-time eligibility per call</div></div></div>
+            <div class="ef"><div class="ef-ico">🔄</div><div><div class="ef-t">Bidirectional Sync</div><div class="ef-d">Updates flow both ways — no gaps</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- DEMO VIDEOS -->
+<div class="section-bg section-bg-white" id="demo">
+  <div class="inner">
+    <div class="slabel">See It In Action</div>
+    <h2 class="stitle">Hear Sierra <em style="font-style:italic;color:var(--teal)">handle it live.</em></h2>
+    <p class="ssub" style="margin-top:8px">Click play on any scenario below to hear a real Sierra call — live voice, real workflow, end-to-end.</p>
+    <div class="demo-grid">
+      <div class="dc" onclick="playDemo(0)">
+        <div class="dthumb" id="dthumb0">
+          <div class="dwave" id="dw1"></div>
+          <div class="pbt" id="pbtn0"></div>
+          <div class="play-spinner" id="pspinner0" style="display:none">
+            <div class="ps-ring"></div>
+            <div class="ps-label">Playing...</div>
+          </div>
+        </div>
+        <div class="dinfo">
+          <div class="dcat">Inbound · Fertility Clinic</div>
+          <div class="dtit">New Patient Consult Booking</div>
+          <div class="ddesc">Sierra answers, qualifies the caller, books a fertility consult, and fires the intake portal — all in one call.</div>
+          <div class="ddur" id="ddur0">▶ Click to hear this call</div>
+        </div>
+      </div>
+      <div class="dc" onclick="playDemo(1)">
+        <div class="dthumb" id="dthumb1">
+          <div class="dwave" id="dw2"></div>
+          <div class="pbt" id="pbtn1"></div>
+          <div class="play-spinner" id="pspinner1" style="display:none">
+            <div class="ps-ring"></div>
+            <div class="ps-label">Playing...</div>
+          </div>
+        </div>
+        <div class="dinfo">
+          <div class="dcat">Outbound · Debt Collection</div>
+          <div class="dtit">Balance Recovery Call</div>
+          <div class="ddesc">Hear Sierra make a compliant, empathetic balance recovery call and capture a payment commitment.</div>
+          <div class="ddur" id="ddur1">▶ Click to hear this call</div>
+        </div>
+      </div>
+      <div class="dc" onclick="playDemo(2)">
+        <div class="dthumb" id="dthumb2">
+          <div class="dwave" id="dw3"></div>
+          <div class="pbt" id="pbtn2"></div>
+          <div class="play-spinner" id="pspinner2" style="display:none">
+            <div class="ps-ring"></div>
+            <div class="ps-label">Playing...</div>
+          </div>
+        </div>
+        <div class="dinfo">
+          <div class="dcat">Outbound · Preventive Care</div>
+          <div class="dtit">Screening Outreach Campaign</div>
+          <div class="ddesc">Sierra reaches a patient overdue for a mammogram, closes the care gap, and books the visit on the same call.</div>
+          <div class="ddur" id="ddur2">▶ Click to hear this call</div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:44px">
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px;font-weight:500">Or hear Sierra right now — no login required</p>
+      <a href="tel:+18664401586" class="btnteal" style="display:inline-block">📞 Call (866) 440-1586</a>
+    </div>
+  </div>
+</div>
+
+<!-- CALL PLAYER MODAL -->
+<div id="callPlayerOverlay" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(30,37,99,.55);backdrop-filter:blur(10px);align-items:center;justify-content:center;">
+  <div id="callPlayerBox" style="background:#fff;border-radius:16px;padding:0;max-width:560px;width:92%;box-shadow:0 24px 60px rgba(30,37,99,.2);overflow:hidden;">
+    <!-- Header -->
+    <div style="background:var(--navy-dk);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#00d4c8);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:1.1rem;font-weight:600;color:#fff;flex-shrink:0;">S</div>
+        <div>
+          <div style="font-size:.95rem;font-weight:700;color:#fff;">Sierra · Vaklab AI</div>
+          <div id="cpCallType" style="font-size:.72rem;color:rgba(255,255,255,.55);margin-top:1px;">Inbound · Fertility Clinic</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div id="cpLiveBadge" style="display:flex;align-items:center;gap:6px;background:rgba(61,232,154,.15);color:#3de89a;border-radius:20px;padding:4px 12px;font-size:.7rem;font-weight:600;">
+          <span id="cpLiveDot" style="width:6px;height:6px;border-radius:50%;background:#3de89a;display:inline-block;animation:pulse 1.4s infinite;"></span>
+          <span id="cpLiveText">LIVE</span>
+        </div>
+        <button onclick="stopDemo()" style="background:rgba(255,255,255,.12);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;">×</button>
+      </div>
+    </div>
+    <!-- Waveform -->
+    <div style="background:var(--navy-dk);padding:0 24px 18px;display:flex;align-items:center;gap:3px;height:56px;" id="cpWaveWrap"></div>
+    <!-- Transcript -->
+    <div style="padding:20px 24px;max-height:260px;overflow-y:auto;background:#f8f9fc;" id="cpTranscript"></div>
+    <!-- Controls -->
+    <div style="padding:16px 24px;background:#fff;border-top:1px solid #eef0f4;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-family:var(--mono);font-size:.78rem;color:var(--muted);" id="cpTimer">00:00</div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="stopDemo()" style="background:var(--navy);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:.8rem;font-weight:600;cursor:pointer;">■ Stop</button>
+      </div>
+      <div style="font-size:.72rem;color:var(--muted);font-weight:500;">Web Speech Demo</div>
+    </div>
+  </div>
+</div>
+
+<style>
+.play-spinner { position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(30,37,99,.6);border-radius:0; }
+.ps-ring { width:44px;height:44px;border-radius:50%;border:3px solid rgba(255,255,255,.2);border-top:3px solid var(--teal);animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.ps-label { font-size:.72rem;color:#fff;font-weight:600;letter-spacing:.06em;font-family:var(--mono); }
+.cp-line { display:flex;gap:10px;margin-bottom:14px;align-items:flex-start;animation:fadeUp .3s ease; }
+.cp-av { width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;margin-top:1px; }
+.cp-av.sierra { background:linear-gradient(135deg,var(--teal),#00d4c8);color:#fff; }
+.cp-av.patient { background:#e8eaf5;color:var(--navy); }
+.cp-speaker { font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px; }
+.cp-speaker.sierra { color:var(--teal); }
+.cp-speaker.patient { color:var(--navy); }
+.cp-text { font-size:.85rem;line-height:1.55;color:var(--text);background:#fff;padding:8px 12px;border-radius:8px;border:1px solid #eef0f4; }
+.cp-text.sierra { border-color:var(--teal-border);background:#f0fffe; }
+.cp-wave-bar { width:3px;border-radius:2px;background:var(--teal);opacity:.7;animation:wv var(--d,1s) var(--dl,0s) ease-in-out infinite alternate; }
+</style>
+<div class="divider"></div>
+
+<!-- PROOF -->
+<div class="section-bg section-bg-navy">
+  <div class="inner" style="padding-top:0;padding-bottom:0">
+    <div style="padding:80px 0">
+      <div class="proof-inner">
+        <div class="pgrid">
+          <div class="pstat"><div class="pn">23%</div><div class="pl">Avg appointments lost to no-shows</div></div>
+          <div class="pstat"><div class="pn">$150B</div><div class="pl">Annual healthcare revenue lost</div></div>
+          <div class="pstat"><div class="pn">40%</div><div class="pl">No-show reduction with reminder calls</div></div>
+          <div class="pstat"><div class="pn">0s</div><div class="pl">Hold time with Sierra answering</div><div class="psrc">Vaklab AI</div></div>
+        </div>
+        <div>
+          <div class="slabel" style="color:var(--teal)">The Business Case</div>
+          <h2 class="stitle stitle-light" style="font-size:clamp(1.8rem,3.2vw,2.6rem)">Missed visits create <em style="font-style:italic;color:var(--teal)">measurable operational leakage.</em></h2>
+          <p style="font-size:.9rem;color:rgba(255,255,255,.6);line-height:1.75;margin:14px 0 28px">The cost is not abstract. No-shows drain revenue, waste staff time, and leave recoverable appointments on the schedule. Vaklab AI recovers that leakage earlier — with faster call handling, EHR-integrated workflows, and fewer patients falling through.</p>
+          <button class="btnteal" onclick="openModal()">See the ROI for your clinic</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+  <div style="display:inline-flex;align-items:center;gap:8px;background:var(--teal-dim);border:1px solid var(--teal-border);color:var(--teal);border-radius:20px;padding:5px 14px;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:20px">
+    <span style="width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 1.5s infinite;display:inline-block"></span>
+    Start Today
+  </div>
+  <h2>Talk to <em>Sierra</em> before<br>you talk to us.</h2>
+  <p>Hear the exact voice experience your patients get — from booking to EHR sync. Then decide if Vaklab AI fits your workflow.</p>
+  <div style="display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap">
+    <button class="btnp" onclick="openModal()">Request a Demo Walkthrough</button>
+    <a href="tel:+18664401586" class="btns">📞 Call Sierra Now</a>
+  </div>
+  <div class="ctacards">
+    <div class="ctac">
+      <div class="ctac-ico">📞</div>
+      <div class="ctac-t">Call Sierra Live</div>
+      <div class="pdisp">(866) 440-1586</div>
+      <div class="ctac-d">Hear Sierra handle scheduling, triage, and intake exactly the way your patients would experience it.</div>
+      <a href="tel:+18664401586" class="ctalink">Call Now →</a>
+    </div>
+    <div class="ctac ctac-hl">
+      <div class="ctac-ico">⚡</div>
+      <div class="ctac-t">Have Sierra Call You</div>
+      <div class="ctac-d" style="margin-top:8px">Enter your number and we'll connect you to a live inbound scheduling demo right now.</div>
+      <button class="btnp" style="width:100%;margin-top:4px" onclick="openModal()">Call Me Now</button>
+    </div>
+    <div class="ctac">
+      <div class="ctac-ico">📅</div>
+      <div class="ctac-t">Schedule a Walkthrough</div>
+      <div class="ctac-d">In 20 minutes we'll map your workflow, bottlenecks, and where Vaklab AI creates lift — including EHR setup.</div>
+      <a href="https://calendar.app.google/aC4jGKiKSk3EbiCC6" target="_blank" class="ctalink">Book 20 min →</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <a href="#" class="flogo">
+      <div class="flogo-ico">
+        <svg width="17" height="17" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="9" cy="6" r="2" fill="white"/>
+          <circle cx="23" cy="6" r="2" fill="white"/>
+          <path d="M9 6 C9 6 7 6 7 11 C7 16 11 19 16 19 C21 19 25 16 25 11 C25 6 23 6 23 6" stroke="white" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <path d="M25 11 C25 11 25 20 25 22 C25 25.5 22.5 27.5 19.5 27.5 C16.5 27.5 14.5 25.2 14.5 22.5 L14.5 21" stroke="white" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <circle cx="14.5" cy="21" r="3" fill="none" stroke="white" stroke-width="2"/>
+          <circle cx="14.5" cy="21" r="1.2" fill="white"/>
+        </svg>
+      </div>
+      <span class="flogo-t">Vaklab AI</span>
+    </a>
+    <div class="ftag">Voice-to-Workflow Infrastructure for Healthcare</div>
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+      <span class="tbadge">HIPAA</span><span class="tbadge">FHIR R4</span><span class="tbadge">HL7 v2</span><span class="tbadge">SOC 2</span>
+    </div>
+  </div>
+  <div class="fcol">
+    <h4>Product</h4>
+    <ul>
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#solutions">Solutions</a></li>
+      <li><a href="#ehr">EHR Integration</a></li>
+  
+    </ul>
+  </div>
+  <div class="fcol">
+    <h4>Company</h4>
+    <ul>
+      <li><a href="https://www.vaklabai.com/faq" target="_blank">FAQ</a></li>
+      <li><a href="/cdn-cgi/l/email-protection#790a18151c0a390f181215181b571a1614">Sales</a></li>
+      <li><a href="/cdn-cgi/l/email-protection#0d7e787d7d627f794d7b6c66616c6f236e6260">Support</a></li>
+    </ul>
+  </div>
+  <div class="fcol">
+    <h4>Contact</h4>
+    <ul>
+      <li><a href="tel:+18664401586">(866) 440-1586</a></li>
+      <li><a href="/cdn-cgi/l/email-protection#2655474a43556650474d4a47440845494b"><span class="__cf_email__" data-cfemail="e291838e8791a29483898e8380cc818d8f">[email&#160;protected]</span></a></li>
+      <li><a href="/cdn-cgi/l/email-protection#790a0c0909160b0d390f181215181b571a1614"><span class="__cf_email__" data-cfemail="4d3e383d3d223f390d3b2c26212c2f632e2220">[email&#160;protected]</span></a></li>
+    </ul>
+  </div>
+  <div class="fcopy">
+    <span>© 2025 Vaklab AI · Enterprise Healthcare</span>
+    <span>HIPAA Compliant · FHIR R4 · HL7 v2 · SOC 2</span>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="movl" id="movl" onclick="closeM(event)">
+  <div class="mbox">
+    <button class="mcl" onclick="closeMD()">×</button>
+    <div style="font-size:1.8rem;margin-bottom:10px">⚡</div>
+    <div class="mt">Have Sierra Call You</div>
+    <div class="ms">Enter your number and we'll connect you to Sierra for a live demo — no pitch, just the real voice experience your patients get.</div>
+    <input type="tel" class="mi" placeholder="(555) 000-0000" id="phoneIn"/>
+    <button class="btnp" style="width:100%" onclick="submitCall()">Connect Me to Sierra</button>
+    <div class="mnote">Or call directly · (866) 440-1586 · HIPAA compliant</div>
+    <hr class="mhr"/>
+    <div style="font-size:.72rem;color:var(--muted);margin-bottom:10px;font-weight:500">Prefer a guided walkthrough?</div>
+    <a href="https://calendar.app.google/aC4jGKiKSk3EbiCC6" target="_blank" class="btns" style="width:100%;justify-content:center;display:flex">📅 Schedule 20-Min Demo</a>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 60));
+
+function buildWave(id, count) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const b = document.createElement('div');
+    b.className = 'wbar';
+    const h = 6 + Math.random() * 26, d = .6 + Math.random() * 1.1, dl = (i / count) * 1.1;
+    b.style.cssText = `--h:${h}px;--d:${d}s;--dl:${dl}s`;
+    el.appendChild(b);
+  }
+}
+buildWave('heroWave', 38);
+buildWave('stepWave', 22);
+
+['dw1','dw2','dw3'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  for (let i = 0; i < 26; i++) {
+    const s = document.createElement('span');
+    const h = 4 + Math.random() * 24, d = .5 + Math.random() * 1.1, dl = (i / 26) * 1.3;
+    s.style.cssText = `--h:${h}px;--d:${d}s;--dl:${dl}s`;
+    el.appendChild(s);
+  }
+});
+
+const phrases = [
+  'Perfect — I have Thursday 2:15 PM or Friday 10:00 AM with Dr. Chen.',
+  'Let me verify your insurance while we lock that in.',
+  'Done — sending your intake link by text right now.',
+  'Your appointment is confirmed. The clinic will have your chart ready.'
+];
+let pIdx = 0;
+function cycleTyping() {
+  const el = document.getElementById('typingLine');
+  if (!el) return;
+  el.textContent = '';
+  el.classList.add('typ');
+  const phrase = phrases[pIdx % phrases.length];
+  let i = 0;
+  const t = setInterval(() => {
+    el.textContent += phrase[i++];
+    if (i >= phrase.length) {
+      clearInterval(t);
+      el.classList.remove('typ');
+      pIdx++;
+      setTimeout(cycleTyping, 2800);
+    }
+  }, 34);
+}
+setTimeout(cycleTyping, 1400);
+
+let secs = 38;
+setInterval(() => {
+  secs++;
+  const el = document.getElementById('callTimer');
+  if (el) el.textContent = `${String(Math.floor(secs/60)).padStart(2,'0')}:${String(secs%60).padStart(2,'0')}`;
+}, 1000);
+
+const stepData = [
+  { t: 'Sierra answers and verifies the caller.', d: 'The patient reaches a live voice agent immediately. Sierra verifies intent, pulls the right context, and starts the workflow in real time — no hold music, no voicemail, zero wait.', tags: ['24/7 COVERAGE','INSTANT ANSWER','CONTEXT-AWARE','ZERO HOLD TIME'] },
+  { t: 'The appointment is booked on the same call.', d: 'Sierra reads live provider availability from your EHR, matches visit type and clinic rules, then confirms the slot while the caller is still engaged.', tags: ['EHR AVAILABILITY READ','REAL-TIME BOOKING','PROVIDER MATCHING','CONFIRMATION SENT'] },
+  { t: 'A branded intake link is sent instantly.', d: 'The handoff from voice to digital is immediate. The patient receives a branded portal with forms, document uploads, and insurance collection ready before arrival.', tags: ['BRANDED PORTAL','INSTANT SMS/EMAIL','DOCUMENT UPLOAD','INSURANCE CAPTURE'] },
+  { t: 'Pre-visit information is collected in chat.', d: 'After the handoff, the patient completes intake via conversational chat — history, symptoms, documents. The visit packet fills in before arrival, no PDF required.', tags: ['CHAT-BASED INTAKE','FORM COMPLETION','HISTORY COLLECTION','PRE-FILL ON ARRIVAL'] },
+  { t: 'Data syncs to EHR and lands in the dashboard.', d: 'All intake responses, bookings, and call outcomes are written back to the patient chart via FHIR R4. Staff open the clinic portal to a complete view — exceptions only.', tags: ['FHIR WRITE-BACK','EHR AUTO-SYNC','EXCEPTIONS ONLY','LIVE DASHBOARD'] },
+];
+let stepIdx = 0;
+function setStep(idx) {
+  stepIdx = idx;
+  document.querySelectorAll('.sc').forEach((c, i) => c.classList.toggle('act', i === idx));
+  const d = stepData[idx];
+  document.getElementById('dTitle').textContent = d.t;
+  document.getElementById('dDesc').textContent = d.d;
+  document.getElementById('dTags').innerHTML = d.tags.map(t => `<span class="dtag">${t}</span>`).join('');
+  const bar = document.getElementById('spBar');
+  if (bar) { bar.style.transition = 'none'; bar.style.width = '0'; void bar.offsetWidth; bar.style.transition = 'width 4.2s linear'; bar.style.width = '100%'; }
+}
+setStep(0);
+setInterval(() => setStep((stepIdx + 1) % 5), 4400);
+
+function switchTab(tab) {
+  const tabMap = { analytics: 0, invitations: 2, messages: 3 };
+  ['analytics','invitations','messages'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('act', t === tab);
+    document.getElementById('screen-'+t).style.display = t === tab ? 'block' : 'none';
+  });
+  const dfs = document.querySelectorAll('.df');
+  dfs.forEach(f => f.classList.remove('act'));
+  if (tabMap[tab] !== undefined) dfs[tabMap[tab]].classList.add('act');
+}
+
+// ── DEMO CALL PLAYER ─────────────────────────────────────────────
+const demoScripts = [
+  {
+    label: 'Inbound · Fertility Clinic',
+    lines: [
+      { role:'sierra', text:"Thank you for calling UTHealth Fertility Clinic. This is Sierra, your virtual care coordinator. How can I help you today?" },
+      { role:'patient', text:"Hi, yes, I'd like to schedule a consultation for fertility treatment. This would be my first visit." },
+      { role:'sierra', text:"Of course, we would love to help you with that. Can I start by getting your name and date of birth?" },
+      { role:'patient', text:"Sure, my name is Maria Santos, date of birth July 14th, 1990." },
+      { role:'sierra', text:"Thank you Maria. And have you been seen at UTHealth before, or would this be a brand new patient visit?" },
+      { role:'patient', text:"This would be my first time." },
+      { role:'sierra', text:"Perfect. For a new patient fertility consultation, we typically schedule with one of our reproductive specialists. Do you have a preference for Dr. Chen or Dr. Patel?" },
+      { role:'patient', text:"I've heard good things about Dr. Chen, so let's go with her." },
+      { role:'sierra', text:"Great choice. Dr. Chen has availability this Thursday at 2:15 PM, or next Monday at 10 AM. Which works better for you?" },
+      { role:'patient', text:"Thursday at 2:15 works perfectly." },
+      { role:'sierra', text:"I have booked you for Thursday at 2:15 PM with Dr. Chen at UTHealth Fertility Clinic. I am sending you a text right now with your intake forms. If you can complete those before your visit, it will save you time at the clinic. Is there anything else I can help you with today?" },
+      { role:'patient', text:"No that is great, thank you so much!" },
+      { role:'sierra', text:"My pleasure Maria. We will see you Thursday. Take care and have a wonderful day!" },
+    ]
+  },
+  {
+    label: 'Outbound · Debt Collection',
+    lines: [
+      { role:'sierra', text:"Hello, may I please speak with James Kowalski?" },
+      { role:'patient', text:"Yes, this is James." },
+      { role:'sierra', text:"Hi James, this is Sierra calling from UTHealth Clinic. I am reaching out regarding an outstanding balance of three hundred and forty dollars from your visit on February 12th. Is now a good time to talk?" },
+      { role:'patient', text:"Yeah, I was meaning to call about that. I have just been busy." },
+      { role:'sierra', text:"Completely understandable. We have a couple of options to make this easy for you. You can pay the full amount today, or we can set up a simple payment plan — for example, two payments of one hundred seventy dollars, thirty days apart. Which would work better for you?" },
+      { role:'patient', text:"A payment plan sounds better for me right now." },
+      { role:'sierra', text:"Absolutely, no problem at all. I will set up two payments of one hundred and seventy dollars. The first would be due on April 15th. Can I confirm the best number to send you a secure payment link?" },
+      { role:'patient', text:"Yeah, you can text me at this number." },
+      { role:'sierra', text:"Perfect. I am sending the secure payment link to this number right now. You will receive a confirmation once your first payment is processed. Is there anything else I can help you with today?" },
+      { role:'patient', text:"No that covers it, thanks." },
+      { role:'sierra', text:"Thank you James. We appreciate you working with us. Have a great rest of your day!" },
+    ]
+  },
+  {
+    label: 'Outbound · Preventive Care',
+    lines: [
+      { role:'sierra', text:"Hello, may I please speak with Angela Rodriguez?" },
+      { role:'patient', text:"Speaking." },
+      { role:'sierra', text:"Hi Angela, this is Sierra calling from UTHealth Clinic. I am calling because our records show you are due for your annual mammogram screening — your last one was about eighteen months ago. I wanted to reach out and help you get that scheduled." },
+      { role:'patient', text:"Oh yes, I have been meaning to do that. I keep forgetting." },
+      { role:'sierra', text:"Completely understandable, life gets busy! The good news is we have appointments available as early as this week. It is a quick visit, usually about twenty to thirty minutes. Does morning or afternoon work better for you?" },
+      { role:'patient', text:"Morning is better for me, maybe Friday?" },
+      { role:'sierra', text:"I have Friday at 9 AM or 10:30 AM open at our UTHealth location. Which do you prefer?" },
+      { role:'patient', text:"9 AM works." },
+      { role:'sierra', text:"Wonderful! You are all set for Friday at 9 AM for your mammogram screening at UTHealth Clinic. I will send you a text confirmation with the address and any preparation instructions. Is there anything else I can help you with?" },
+      { role:'patient', text:"No, that is perfect. Thank you for calling, I probably would have forgotten again." },
+      { role:'sierra', text:"That is exactly why we are here! We will see you Friday morning Angela. Take care and have a great day!" },
+    ]
+  }
+];
+
+let currentDemo = -1;
+let synthLines = [];
+let lineIdx = 0;
+let cpSecs = 0;
+let cpInterval = null;
+let speaking = false;
+
+function buildCpWave() {
+  const wrap = document.getElementById('cpWaveWrap');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  for (let i = 0; i < 48; i++) {
+    const b = document.createElement('div');
+    b.className = 'cp-wave-bar';
+    const h = 6 + Math.random() * 22, d = .5 + Math.random() * 1.1, dl = (i / 48) * 1.2;
+    b.style.cssText = `--h:${h}px;--d:${d}s;--dl:${dl}s;flex:1;`;
+    wrap.appendChild(b);
+  }
+}
+
+function playDemo(idx) {
+  if (speaking) stopDemo();
+  if (!window.speechSynthesis) {
+    alert('Your browser does not support speech synthesis. Please try Chrome or Edge.');
+    return;
+  }
+  currentDemo = idx;
+  const script = demoScripts[idx];
+
+  // Show spinner on card
+  for (let i = 0; i < 3; i++) {
+    const sp = document.getElementById('pspinner' + i);
+    const pb = document.getElementById('pbtn' + i);
+    if (sp) sp.style.display = i === idx ? 'flex' : 'none';
+    if (pb) pb.style.display = i === idx ? 'none' : 'flex';
+  }
+  document.getElementById('ddur' + idx).textContent = '⏹ Click to stop';
+
+  // Setup player modal
+  document.getElementById('cpCallType').textContent = script.label;
+  document.getElementById('cpTranscript').innerHTML = '';
+  document.getElementById('cpTimer').textContent = '00:00';
+  document.getElementById('cpLiveText').textContent = 'LIVE';
+  const overlay = document.getElementById('callPlayerOverlay');
+  overlay.style.display = 'flex';
+  buildCpWave();
+
+  cpSecs = 0;
+  cpInterval = setInterval(() => {
+    cpSecs++;
+    const m = String(Math.floor(cpSecs / 60)).padStart(2, '0');
+    const s = String(cpSecs % 60).padStart(2, '0');
+    document.getElementById('cpTimer').textContent = `${m}:${s}`;
+  }, 1000);
+
+  speaking = true;
+  lineIdx = 0;
+  speakLine(script.lines);
+}
+
+function speakLine(lines) {
+  if (!speaking || lineIdx >= lines.length) {
+    finishDemo();
+    return;
+  }
+  const line = lines[lineIdx];
+  const transcript = document.getElementById('cpTranscript');
+  if (transcript) {
+    const div = document.createElement('div');
+    div.className = 'cp-line';
+    div.innerHTML = `
+      <div class="cp-av ${line.role}">${line.role === 'sierra' ? 'S' : 'P'}</div>
+      <div>
+        <div class="cp-speaker ${line.role}">${line.role === 'sierra' ? 'Sierra' : 'Patient'}</div>
+        <div class="cp-text ${line.role}">${line.text}</div>
+      </div>`;
+    transcript.appendChild(div);
+    transcript.scrollTop = transcript.scrollHeight;
+  }
+
+  const utter = new SpeechSynthesisUtterance(line.text);
+  utter.rate = 0.78;  // slower, more natural pace
+  utter.volume = 1;
+
+  const voices = window.speechSynthesis.getVoices();
+  const enVoices = voices.filter(v => v.lang.startsWith('en'));
+  const femVoices = enVoices.filter(v =>
+    /samantha|karen|moira|victoria|tessa|fiona|zira|hazel|susan|allison|ava|nicky|kate/i.test(v.name)
+    || /female|woman/i.test(v.name)
+  );
+  const maleVoices = enVoices.filter(v =>
+    /daniel|alex|fred|tom|david|mark|george|oliver/i.test(v.name)
+    || /male|man/i.test(v.name)
+  );
+
+  const isFertility = currentDemo === 0; // fertility demo — patient is female
+
+  if (line.role === 'sierra') {
+    // Sierra always female, higher pitch
+    utter.pitch = 1.18;
+    if (femVoices.length) utter.voice = femVoices[0];
+    else if (enVoices.length) utter.voice = enVoices[0];
+  } else {
+    // Patient voice
+    if (isFertility) {
+      // Female patient for fertility — use second female voice if available, else first
+      utter.pitch = 1.05;
+      if (femVoices.length > 1) utter.voice = femVoices[1];
+      else if (femVoices.length === 1) utter.voice = femVoices[0];
+      else if (enVoices.length) utter.voice = enVoices[0];
+    } else {
+      // Male patient for other demos
+      utter.pitch = 0.9;
+      if (maleVoices.length) utter.voice = maleVoices[0];
+      else if (enVoices.length > 1) utter.voice = enVoices[enVoices.length - 1];
+      else if (enVoices.length) utter.voice = enVoices[0];
+    }
+  }
+
+  utter.onend = () => {
+    lineIdx++;
+    setTimeout(() => speakLine(lines), 380);
+  };
+  utter.onerror = () => {
+    lineIdx++;
+    speakLine(lines);
+  };
+
+  window.speechSynthesis.speak(utter);
+}
+
+function finishDemo() {
+  speaking = false;
+  clearInterval(cpInterval);
+  if (cpInterval) clearInterval(cpInterval);
+  document.getElementById('cpLiveText').textContent = 'ENDED';
+  document.getElementById('cpLiveDot').style.animation = 'none';
+  document.getElementById('cpLiveDot').style.background = '#8898b4';
+  for (let i = 0; i < 3; i++) {
+    const sp = document.getElementById('pspinner' + i);
+    const pb = document.getElementById('pbtn' + i);
+    if (sp) sp.style.display = 'none';
+    if (pb) pb.style.display = 'flex';
+    const dur = document.getElementById('ddur' + i);
+    if (dur) dur.textContent = '▶ Click to hear this call';
+  }
+}
+
+function stopDemo() {
+  speaking = false;
+  window.speechSynthesis.cancel();
+  finishDemo();
+  document.getElementById('callPlayerOverlay').style.display = 'none';
+}
+
+// Close overlay on backdrop click
+document.getElementById('callPlayerOverlay').addEventListener('click', function(e) {
+  if (e.target === this) stopDemo();
+});
+
+// Load voices async (Chrome needs this)
+window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+
+function openModal() { document.getElementById('movl').classList.add('open'); }
+function closeM(e) { if (e.target === document.getElementById('movl')) closeMD(); }
+function closeMD() { document.getElementById('movl').classList.remove('open'); }
+function submitCall() {
+  const p = document.getElementById('phoneIn').value.trim();
+  if (p.length < 7) { alert('Please enter a valid phone number.'); return; }
+  window.location.href = 'tel:+18664401586';
+}
+</script>
+</body>
+</html>
