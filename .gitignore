@@ -1,4 +1,7 @@
-.firebase/
+# Dotfiles/folders
+.*
+!.gitignore
+!.github
+!.firebaserc
 node_modules/
-.env
 *.log
