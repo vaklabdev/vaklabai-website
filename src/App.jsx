@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Routes, Route, useNavigate, useLocation, Link } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation, useParams } from "react-router-dom";
 
 const C = {
   bg:"#F8F7F4",bg2:"#EFEDE8",white:"#FFFFFF",dark:"#0C0C0C",dark2:"#151515",darkBorder:"#282828",
@@ -387,7 +387,7 @@ function Footer() {
   const cols = [
     { title: "Product", items: [{ l: "Meet the Product", p: "/product" }, { l: "Book a Call" }] },
     { title: "Specialty", items: [{ l: "Dentistry", p: "/specialty/dentist" }, { l: "Urgent Care", p: "/specialty/urgent-care" }, { l: "Mental Health", p: "/specialty/mental-health" }, { l: "Fertility", p: "/specialty/fertility" }] },
-    { title: "Company", items: [{ l: "Email Us" }] },
+    { title: "Company", items: [{ l: "Email Us", href: "mailto:support@vaklabai.com" }] },
   ];
   return (
     <footer style={{ background: "linear-gradient(180deg, #1E1B4B 0%, #1a1744 100%)", padding: "96px 48px 44px" }}>
@@ -399,7 +399,9 @@ function Footer() {
             <span style={{ fontFamily: F.sans, fontSize: 13, fontWeight: 600, color: C.accentLight, cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={e => e.target.style.color = "#fff"} onMouseLeave={e => e.target.style.color = C.accentLight}>Follow on LinkedIn →</span>
           </div>
           {cols.map(c => <div key={c.title}><div style={{ fontFamily: F.mono, fontSize: 9.5, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: 22 }}>{c.title}</div>
-            {c.items.map(i => <div key={i.l} onClick={() => i.p && go(i.p)} style={{ fontFamily: F.sans, fontSize: 13, color: "rgba(255,255,255,0.55)", padding: "5px 0", cursor: i.p ? "pointer" : "default", transition: "all 0.3s", fontWeight: 350 }} onMouseEnter={e => { e.target.style.color = "rgba(255,255,255,0.9)"; if (i.p) e.target.style.paddingLeft = "4px"; }} onMouseLeave={e => { e.target.style.color = "rgba(255,255,255,0.55)"; e.target.style.paddingLeft = "0"; }}>{i.l}</div>)}</div>)}
+            {c.items.map(i => i.href
+                ? <a key={i.l} href={i.href} style={{ fontFamily: F.sans, fontSize: 13, color: "rgba(255,255,255,0.55)", padding: "5px 0", display: "block", textDecoration: "none", transition: "all 0.3s", fontWeight: 350 }} onMouseEnter={e => e.target.style.color = "rgba(255,255,255,0.9)"} onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.55)"}>{i.l}</a>
+                : <div key={i.l} onClick={() => i.p && go(i.p)} style={{ fontFamily: F.sans, fontSize: 13, color: "rgba(255,255,255,0.55)", padding: "5px 0", cursor: i.p ? "pointer" : "default", transition: "all 0.3s", fontWeight: 350 }} onMouseEnter={e => { e.target.style.color = "rgba(255,255,255,0.9)"; if (i.p) e.target.style.paddingLeft = "4px"; }} onMouseLeave={e => { e.target.style.color = "rgba(255,255,255,0.55)"; e.target.style.paddingLeft = "0"; }}>{i.l}</div>)}</div>)}
         </div>
         <div style={{ borderTop: "1px solid rgba(165,180,252,0.15)", paddingTop: 24, display: "flex", justifyContent: "space-between", fontFamily: F.sans, fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 350 }}><span>© 2025 Vaklab AI</span><div style={{ display: "flex", gap: 24 }}><span style={{ cursor: "pointer" }}>Privacy Policy</span><span style={{ cursor: "pointer" }}>Cookie Settings</span></div></div>
       </div>
@@ -408,7 +410,6 @@ function Footer() {
 }
 
 /* ═══════ APP WITH ROUTES ═══════ */
-import { useParams } from "react-router-dom";
 
 export default function App() {
   return (
