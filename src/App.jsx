@@ -197,6 +197,41 @@ function HomeHero() {
 }
 
 const DEMO_AGENT_URL = "wss://dev.vaklabai.com";
+const SMS_API_URL = "https://dev.vaklabai.com/api/sms/demo";
+
+function SmsDemo() {
+  const [phone, setPhone] = useState("");
+  const [status, setStatus] = useState("idle");
+
+  const handleTextMe = async () => {
+    if (!phone.trim()) return;
+    setStatus("sending");
+    try {
+      const res = await fetch(SMS_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      if (!res.ok) throw new Error();
+      setStatus("sent");
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  return (
+    <Glass style={{ padding: "32px 36px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", maxWidth: 480, margin: "0 auto", width: "100%" }}>
+      <Heading s="sm" style={{ marginBottom: 10 }}>Prefer to text?</Heading><Txt>Sierra does that, too.</Txt>
+      <div style={{ display: "flex", marginTop: 24, border: `1.5px solid ${status === "error" ? C.rose : status === "sent" ? C.tealMid : C.border}`, borderRadius: 100, overflow: "hidden", background: C.white, maxWidth: 420, width: "100%", transition: "border-color 0.3s" }}>
+        <span style={{ padding: "12px 14px", fontFamily: F.sans, fontSize: 13, color: C.textSoft, borderRight: `1px solid ${C.border}` }}>+1</span>
+        <input type="tel" placeholder="000-000-0000" value={phone} onChange={e => setPhone(e.target.value)} onKeyDown={e => e.key === "Enter" && handleTextMe()} style={{ border: "none", outline: "none", padding: "12px 14px", fontFamily: F.sans, fontSize: 13, flex: 1, background: "transparent" }} disabled={status === "sending" || status === "sent"} />
+        <button onClick={handleTextMe} disabled={status === "sending" || status === "sent"} style={{ background: status === "sent" ? C.tealMid : C.text, color: C.bg, border: "none", padding: "12px 22px", fontFamily: F.sans, fontSize: 12, fontWeight: 600, cursor: status === "sending" || status === "sent" ? "default" : "pointer", opacity: status === "sending" ? 0.7 : 1, transition: "all 0.3s" }}>{status === "sending" ? "Sending..." : status === "sent" ? "✓ Sent!" : "Text Me"}</button>
+      </div>
+      {status === "sent" && <Txt style={{ fontSize: 12.5, color: C.tealMid, marginTop: 14, fontWeight: 500 }}>Check your phone — Sierra will text you!</Txt>}
+      {status === "error" && <Txt style={{ fontSize: 12.5, color: C.rose, marginTop: 14, fontWeight: 500 }}>Something went wrong. Please try again.</Txt>}
+    </Glass>
+  );
+}
 
 function HomeLiveDemo() {
   const specs = ["Fertility", "Dentistry", "Urgent Care", "Mental Health"];
@@ -323,14 +358,7 @@ function HomeLiveDemo() {
         <Btn v="accent" style={{ padding: "14px 38px", fontSize: 14.5 }} onClick={streaming ? stopStream : startStream}>{streaming ? "Stop" : "Start Talking"}</Btn>
         <div style={{ fontFamily: F.mono, fontSize: 9, letterSpacing: "0.16em", color: C.textFaint, marginTop: 24, textTransform: "uppercase" }}>{specs[ac]}</div>
       </Glass>
-      <Glass style={{ padding: "32px 36px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", maxWidth: 480, margin: "0 auto", width: "100%" }}>
-        <Heading s="sm" style={{ marginBottom: 10 }}>Prefer to text?</Heading><Txt>Sierra does that, too.</Txt>
-        <div style={{ display: "flex", marginTop: 24, border: `1.5px solid ${C.border}`, borderRadius: 100, overflow: "hidden", background: C.white, maxWidth: 420, width: "100%" }}>
-          <span style={{ padding: "12px 14px", fontFamily: F.sans, fontSize: 13, color: C.textSoft, borderRight: `1px solid ${C.border}` }}>+1</span>
-          <input placeholder="000-000-0000" style={{ border: "none", outline: "none", padding: "12px 14px", fontFamily: F.sans, fontSize: 13, flex: 1, background: "transparent" }} />
-          <button style={{ background: C.text, color: C.bg, border: "none", padding: "12px 22px", fontFamily: F.sans, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Text Me</button>
-        </div>
-      </Glass>
+      <SmsDemo />
     </div></Reveal>
   </Sec>;
 }
@@ -444,7 +472,7 @@ function ProductPage() {
   const cases = ["Scheduling & Reminders", "Medication Adherence", "Insurance Verification", "Patient Retention", "Enrollment & Intake", "Inbound Call Management"];
   const sps = ["Chiropractic", "Concierge", "Dentistry", "Dermatology", "Fertility", "Home Health", "Imaging", "Med Spa", "Mental Health", "Optometry", "Orthopedics", "Pediatrics", "Physical Therapy", "Primary Care", "Veterinary Care", "Virtual Care", "Women's Health"];
   return <>
-    <Sec style={{ paddingTop: 160, minHeight: "88vh" }}><Orb color={C.accentSoft} size={600} top={-200} left={-200} blur={80} /><Blob color={C.warmSoft} size={250} top={200} right={0} opacity={0.05} /><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 72, alignItems: "center" }}><div><div style={a(0)}><Label>Show don't tell</Label></div><div style={a(0.06)}><Heading s="hero" style={{ fontSize: "clamp(44px,5.5vw,74px)" }}>Meet Sierra.<br /><span style={{ fontStyle: "italic", color: C.accentMid }}>The AI assistant</span><br />purpose-built for<br />healthcare.</Heading></div><div style={{ ...a(0.2), marginTop: 36 }}><Btn v="accent" style={{ padding: "16px 38px", fontSize: 15 }}>Try it Out</Btn></div></div>
+    <Sec style={{ paddingTop: 160, minHeight: "88vh" }}><Orb color={C.accentSoft} size={600} top={-200} left={-200} blur={80} /><Blob color={C.warmSoft} size={250} top={200} right={0} opacity={0.05} /><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 72, alignItems: "center" }}><div><div style={a(0.06)}><Heading s="hero" style={{ fontSize: "clamp(44px,5.5vw,74px)" }}>Meet Sierra.<br /><span style={{ fontStyle: "italic", color: C.accentMid }}>The AI assistant</span><br />purpose-built for<br />healthcare.</Heading></div><div style={{ ...a(0.2), marginTop: 36 }}><Btn v="accent" style={{ padding: "16px 38px", fontSize: 15 }}>Try it Out</Btn></div></div>
       <div style={{ ...a(0.25), display: "flex", flexDirection: "column", alignItems: "center", gap: 28 }}><Glass style={{ padding: "36px 40px", textAlign: "center", width: "100%" }}><Heading s="sm">Vaklab AI in action:</Heading><div style={{ width: 60, height: 60, borderRadius: "50%", border: `2px solid ${C.border}`, margin: "24px auto", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", background: C.bg, transition: "all 0.3s" }} onMouseEnter={e => { e.currentTarget.style.borderColor = C.accentMid; e.currentTarget.style.boxShadow = C.shadowGlow; }} onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "none"; }}><span style={{ fontSize: 18, marginLeft: 3, color: C.accentMid }}>▶</span></div><Label>Watch it work</Label></Glass></div></div></Sec>
     <Sec style={{ background: C.white }}><Reveal><div style={{ textAlign: "center", marginBottom: 72 }}><Label>Features</Label><Heading s="lg">Vaklab AI offers:</Heading></div></Reveal><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>{features.map((f, i) => <Reveal key={i} delay={i * 0.05}><Glass style={{ padding: "48px 40px", height: "100%" }}><div style={{ display: "block", marginBottom: 16 }}><Icon name={f.icon} size={28} color={C.accentMid} /></div><Heading s="sm" style={{ marginBottom: 8 }}>{f.title}</Heading><Txt style={{ fontSize: 14.5 }}>{f.desc}</Txt></Glass></Reveal>)}</div></Sec>
     <Sec><Reveal><div style={{ textAlign: "center", marginBottom: 64 }}><Label>Get results</Label><Heading s="lg">Vaklab AI delivers:</Heading></div></Reveal><div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>{[{ c: `linear-gradient(160deg,${C.warmSoft},${C.bg})`, t: "More revenue", s: "without more headcount" }, { c: `linear-gradient(160deg,${C.accentSoft},${C.bg})`, t: "Patient-first timelines", s: "not staff timelines" }, { c: `linear-gradient(160deg,${C.tealSoft},${C.bg})`, t: "Exemplary care", s: "for every patient" }].map((item, i) => <Reveal key={i} delay={i * 0.06}><Glass style={{ padding: "52px 28px", textAlign: "center", background: item.c, height: "100%" }}><Heading s="sm" style={{ marginBottom: 8 }}>{item.t}</Heading><Txt style={{ fontSize: 13.5 }}>{item.s}</Txt></Glass></Reveal>)}</div></Sec>
