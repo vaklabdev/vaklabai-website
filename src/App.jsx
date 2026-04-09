@@ -196,17 +196,131 @@ function HomeHero() {
   </Sec>;
 }
 
+const DEMO_AGENT_URL = "wss://dev.vaklabai.com";
+
 function HomeLiveDemo() {
   const specs = ["Urgent Care", "Dentist", "Mental Health", "Fertility"];
+  const slugs = ["urgent-care", "dentist", "mental-health", "fertility"];
   const [ac, sAc] = useState(0);
+  const [streaming, setStreaming] = useState(false);
+  const [transcript, setTranscript] = useState([]);
+  const [elapsed, setElapsed] = useState(0);
+  const wsRef = useRef(null);
+  const timerRef = useRef(null);
+  const mediaStreamRef = useRef(null);
+  const audioCtxRef = useRef(null);
+  const processorRef = useRef(null);
+  const playCtxRef = useRef(null);
+  const nextPlayTime = useRef(0);
+  const transcriptRef = useRef(null);
+
+  const formatTime = (s) => {
+    const m = Math.floor(s / 60); const sec = s % 60;
+    return `00:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+  };
+
+  const playAudio = (arrayBuf) => {
+    if (!playCtxRef.current) playCtxRef.current = new AudioContext({ sampleRate: 24000 });
+    const ctx = playCtxRef.current;
+    const int16 = new Int16Array(arrayBuf);
+    const float32 = new Float32Array(int16.length);
+    for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 32768;
+    const buf = ctx.createBuffer(1, float32.length, 24000);
+    buf.copyToChannel(float32, 0);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    const now = ctx.currentTime;
+    const startAt = Math.max(now, nextPlayTime.current);
+    src.start(startAt);
+    nextPlayTime.current = startAt + buf.duration;
+  };
+
+  const startMic = async (ws) => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+    mediaStreamRef.current = stream;
+    const ctx = new AudioContext({ sampleRate: 16000 });
+    audioCtxRef.current = ctx;
+    const source = ctx.createMediaStreamSource(stream);
+    const processor = ctx.createScriptProcessor(4096, 1, 1);
+    processorRef.current = processor;
+    processor.onaudioprocess = (e) => {
+      if (ws.readyState !== WebSocket.OPEN) return;
+      const float32 = e.inputBuffer.getChannelData(0);
+      const int16 = new Int16Array(float32.length);
+      for (let i = 0; i < float32.length; i++) int16[i] = Math.max(-32768, Math.min(32767, Math.round(float32[i] * 32768)));
+      ws.send(int16.buffer);
+    };
+    source.connect(processor);
+    processor.connect(ctx.destination);
+  };
+
+  const startStream = async () => {
+    if (wsRef.current) return;
+    const ws = new WebSocket(`${DEMO_AGENT_URL}/api/voice-stream?specialty=${slugs[ac]}`);
+    wsRef.current = ws;
+    ws.binaryType = "arraybuffer";
+    setStreaming(true);
+    setTranscript([]);
+    setElapsed(0);
+    timerRef.current = setInterval(() => setElapsed(t => t + 1), 1000);
+
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ type: "start", specialty: slugs[ac] }));
+      // Delay mic start so Sierra greets first without picking up background noise
+      setTimeout(() => { if (wsRef.current) startMic(ws); }, 2000);
+    };
+    ws.onmessage = (e) => {
+      if (typeof e.data === "string") {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.transcript) {
+            const speaker = data.role === "user" ? "Guest" : "Sierra";
+            const isFinal = data.is_final !== false;
+            setTranscript(prev => {
+              const last = prev[prev.length - 1];
+              // If same speaker and not final, update the last line (streaming)
+              if (last && last.speaker === speaker && !last.final) {
+                return [...prev.slice(0, -1), { speaker, text: data.transcript, final: isFinal }];
+              }
+              // New line
+              return [...prev, { speaker, text: data.transcript, final: isFinal }];
+            });
+          }
+        } catch {}
+      } else {
+        playAudio(e.data);
+      }
+    };
+    ws.onclose = () => stopStream();
+    ws.onerror = () => stopStream();
+  };
+
+  const stopStream = () => {
+    if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    if (processorRef.current) { processorRef.current.disconnect(); processorRef.current = null; }
+    if (audioCtxRef.current) { audioCtxRef.current.close(); audioCtxRef.current = null; }
+    if (playCtxRef.current) { playCtxRef.current.close(); playCtxRef.current = null; nextPlayTime.current = 0; }
+    if (mediaStreamRef.current) { mediaStreamRef.current.getTracks().forEach(t => t.stop()); mediaStreamRef.current = null; }
+    setStreaming(false);
+  };
+
+  useEffect(() => {
+    if (transcriptRef.current) transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight;
+  }, [transcript]);
+
+  useEffect(() => () => stopStream(), []);
+
   return <Sec id="live-demo" style={{ background: C.white }}>
     <Reveal><div style={{ textAlign: "center", marginBottom: 56 }}><Label>Hearing is believing</Label><Heading s="lg">Experience a live call<br />with Sierra, our AI agent</Heading></div></Reveal>
-    <Reveal delay={0.08}><div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, marginBottom: 48 }}>{specs.map((s, i) => <button key={s} onClick={() => sAc(i)} style={{ fontFamily: F.sans, fontSize: 12, fontWeight: 500, padding: "7px 18px", borderRadius: 100, cursor: "pointer", border: `1.5px solid ${i === ac ? C.accentMid : C.border}`, background: i === ac ? C.accentSoft : "transparent", color: i === ac ? C.accentMid : C.textSoft, transition: "all 0.3s" }}>{s}</button>)}</div></Reveal>
+    <Reveal delay={0.08}><div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, marginBottom: 48 }}>{specs.map((s, i) => <button key={s} onClick={() => { if (!streaming) { sAc(i); setTranscript([]); setElapsed(0); } }} style={{ fontFamily: F.sans, fontSize: 12, fontWeight: 500, padding: "7px 18px", borderRadius: 100, cursor: streaming ? "default" : "pointer", border: `1.5px solid ${i === ac ? C.accentMid : C.border}`, background: i === ac ? C.accentSoft : "transparent", color: i === ac ? C.accentMid : C.textSoft, opacity: streaming && i !== ac ? 0.4 : 1, transition: "all 0.3s" }}>{s}</button>)}</div></Reveal>
     <Reveal delay={0.14}><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 28, maxWidth: 760, margin: "0 auto" }}>
       <Glass hover={false} style={{ padding: "48px 32px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", minHeight: 340 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 32 }}><div style={{ width: 8, height: 8, borderRadius: "50%", background: C.success, boxShadow: `0 0 8px ${C.tealLight}` }} /><span style={{ fontFamily: F.mono, fontSize: 9.5, letterSpacing: "0.14em", color: C.textSoft }}>LIVE TRANSCRIPT</span><span style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: "0.08em", color: C.textFaint }}>00:00:00</span></div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 32 }}><div style={{ width: 8, height: 8, borderRadius: "50%", background: streaming ? C.success : C.textFaint, boxShadow: streaming ? `0 0 8px ${C.tealLight}` : "none", transition: "all 0.3s" }} /><span style={{ fontFamily: F.mono, fontSize: 9.5, letterSpacing: "0.14em", color: C.textSoft }}>{streaming ? "LIVE TRANSCRIPT" : "READY"}</span><span style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: "0.08em", color: C.textFaint }}>{formatTime(elapsed)}</span></div>
+        {transcript.length > 0 && <div ref={transcriptRef} style={{ fontFamily: F.sans, fontSize: 14, color: C.textMid, lineHeight: 1.8, marginBottom: 20, minHeight: 120, maxHeight: 280, overflow: "auto", textAlign: "left", width: "100%", padding: "16px 20px", background: C.bg, borderRadius: 14, border: `1px solid ${C.borderLight}` }}>{transcript.map((t, i) => <div key={i} style={{ marginBottom: 10 }}><span style={{ fontFamily: F.mono, fontSize: 11, fontWeight: 600, color: t.speaker === "Sierra" ? C.accentMid : C.tealMid, marginRight: 10 }}>{t.speaker}</span><span>{t.text}{!t.final && <span style={{ display: "inline-block", width: 6, height: 14, background: C.accentMid, marginLeft: 2, animation: "pulse 1s ease-in-out infinite", verticalAlign: "text-bottom" }} />}</span></div>)}</div>}
         <div style={{ marginBottom: 36 }}><WaveAnim bars={36} /></div>
-        <Btn v="accent" style={{ padding: "14px 38px", fontSize: 14.5 }}>Start Talking</Btn>
+        <Btn v="accent" style={{ padding: "14px 38px", fontSize: 14.5 }} onClick={streaming ? stopStream : startStream}>{streaming ? "Stop" : "Start Talking"}</Btn>
         <div style={{ fontFamily: F.mono, fontSize: 9, letterSpacing: "0.16em", color: C.textFaint, marginTop: 24, textTransform: "uppercase" }}>{specs[ac]}</div>
       </Glass>
       <Glass style={{ padding: "52px 32px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
