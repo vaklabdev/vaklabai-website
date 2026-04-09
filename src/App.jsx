@@ -154,10 +154,10 @@ function Nav() {
         <div style={{ display: "flex", gap: 36, alignItems: "center" }}>
           <span onClick={() => go("/product")} style={{ fontFamily: F.sans, fontSize: 13, fontWeight: 500, color: location.pathname === "/product" ? C.text : C.textSoft, cursor: "pointer", transition: "color 0.25s" }} onMouseEnter={e => e.target.style.color = C.text} onMouseLeave={e => e.target.style.color = location.pathname === "/product" ? C.text : C.textSoft}>Meet the Product</span>
           <div style={{ position: "relative" }} onMouseEnter={() => sDr(true)} onMouseLeave={() => sDr(false)}>
-            <span style={{ fontFamily: F.sans, fontSize: 13, fontWeight: 500, color: C.textSoft, cursor: "pointer" }}>Specialty ▾</span>
+            <span style={{ fontFamily: F.sans, fontSize: 13, fontWeight: 500, color: C.textSoft, cursor: "pointer" }}>By Specialty ▾</span>
             {dr && <div style={{ position: "absolute", top: "100%", left: -20, paddingTop: 10, zIndex: 300 }}>
               <div style={{ background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)", border: `1px solid ${C.border}`, borderRadius: 16, padding: 8, boxShadow: C.shadowLg, minWidth: 210 }}>
-                {[{ l: "Dentistry", p: "/specialty/dentist" }, { l: "Urgent Care", p: "/specialty/urgent-care" }, { l: "Mental Health", p: "/specialty/mental-health" }, { l: "Fertility", p: "/specialty/fertility" }].map(s =>
+                {[{ l: "Fertility", p: "/specialty/fertility" }, { l: "Dentistry", p: "/specialty/dentist" }, { l: "Urgent Care", p: "/specialty/urgent-care" }, { l: "Mental Health", p: "/specialty/mental-health" }].map(s =>
                   <div key={s.p} onClick={() => go(s.p)} style={{ fontFamily: F.sans, fontSize: 13.5, fontWeight: 450, padding: "11px 20px", borderRadius: 10, cursor: "pointer", color: C.textMid, transition: "all 0.2s", letterSpacing: "0.005em" }}
                     onMouseEnter={e => { e.currentTarget.style.background = C.accentSoft; e.currentTarget.style.color = C.accent; }}
                     onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = C.textMid; }}>{s.l}</div>
@@ -199,8 +199,8 @@ function HomeHero() {
 const DEMO_AGENT_URL = "wss://dev.vaklabai.com";
 
 function HomeLiveDemo() {
-  const specs = ["Urgent Care", "Dentist", "Mental Health", "Fertility"];
-  const slugs = ["urgent-care", "dentist", "mental-health", "fertility"];
+  const specs = ["Fertility", "Dentistry", "Urgent Care", "Mental Health"];
+  const slugs = ["fertility", "dentist", "urgent-care", "mental-health"];
   const [ac, sAc] = useState(0);
   const [streaming, setStreaming] = useState(false);
   const [transcript, setTranscript] = useState([]);
@@ -317,7 +317,7 @@ function HomeLiveDemo() {
     <Reveal delay={0.08}><div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, marginBottom: 48 }}>{specs.map((s, i) => <button key={s} onClick={() => { if (!streaming) { sAc(i); setTranscript([]); setElapsed(0); } }} style={{ fontFamily: F.sans, fontSize: 12, fontWeight: 500, padding: "7px 18px", borderRadius: 100, cursor: streaming ? "default" : "pointer", border: `1.5px solid ${i === ac ? C.accentMid : C.border}`, background: i === ac ? C.accentSoft : "transparent", color: i === ac ? C.accentMid : C.textSoft, opacity: streaming && i !== ac ? 0.4 : 1, transition: "all 0.3s" }}>{s}</button>)}</div></Reveal>
     <Reveal delay={0.14}><div style={{ display: "flex", flexDirection: "column", gap: 28, maxWidth: 760, margin: "0 auto" }}>
       <Glass hover={false} style={{ padding: "48px 40px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 32 }}><div style={{ width: 8, height: 8, borderRadius: "50%", background: streaming ? C.success : C.textFaint, boxShadow: streaming ? `0 0 8px ${C.tealLight}` : "none", transition: "all 0.3s" }} /><span style={{ fontFamily: F.mono, fontSize: 9.5, letterSpacing: "0.14em", color: C.textSoft }}>{streaming ? "LIVE TRANSCRIPT" : "READY"}</span><span style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: "0.08em", color: C.textFaint }}>{formatTime(elapsed)}</span></div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 32 }}><div style={{ width: 10, height: 10, borderRadius: "50%", background: streaming ? C.success : C.textFaint, boxShadow: streaming ? `0 0 10px ${C.tealLight}` : "none", transition: "all 0.3s" }} /><span style={{ fontFamily: F.mono, fontSize: 13, letterSpacing: "0.14em", fontWeight: 600, color: streaming ? C.text : C.textMid }}>{streaming ? "LIVE TRANSCRIPT" : "READY"}</span><span style={{ fontFamily: F.mono, fontSize: 13, letterSpacing: "0.08em", fontWeight: 500, color: C.textSoft }}>{formatTime(elapsed)}</span></div>
         {transcript.length > 0 && <div ref={transcriptRef} style={{ fontFamily: F.sans, fontSize: 14, color: C.textMid, lineHeight: 1.8, marginBottom: 20, minHeight: 120, maxHeight: 280, overflow: "auto", textAlign: "left", width: "100%", padding: "16px 20px", background: C.bg, borderRadius: 14, border: `1px solid ${C.borderLight}` }}>{transcript.map((t, i) => <div key={i} style={{ marginBottom: 10 }}><span style={{ fontFamily: F.mono, fontSize: 11, fontWeight: 600, color: t.speaker === "Sierra" ? C.accentMid : C.tealMid, marginRight: 10 }}>{t.speaker}</span><span>{t.text}{!t.final && <span style={{ display: "inline-block", width: 6, height: 14, background: C.accentMid, marginLeft: 2, animation: "pulse 1s ease-in-out infinite", verticalAlign: "text-bottom" }} />}</span></div>)}</div>}
         <div style={{ marginBottom: 36 }}><WaveAnim bars={36} /></div>
         <Btn v="accent" style={{ padding: "14px 38px", fontSize: 14.5 }} onClick={streaming ? stopStream : startStream}>{streaming ? "Stop" : "Start Talking"}</Btn>
@@ -500,7 +500,7 @@ function Footer() {
   const go = (p) => navigate(p);
   const cols = [
     { title: "Product", items: [{ l: "Meet the Product", p: "/product" }, { l: "Book a Call" }] },
-    { title: "Specialty", items: [{ l: "Dentistry", p: "/specialty/dentist" }, { l: "Urgent Care", p: "/specialty/urgent-care" }, { l: "Mental Health", p: "/specialty/mental-health" }, { l: "Fertility", p: "/specialty/fertility" }] },
+    { title: "By Specialty", items: [{ l: "Fertility", p: "/specialty/fertility" }, { l: "Dentistry", p: "/specialty/dentist" }, { l: "Urgent Care", p: "/specialty/urgent-care" }, { l: "Mental Health", p: "/specialty/mental-health" }] },
     { title: "Company", items: [{ l: "Email Us", href: "mailto:support@vaklabai.com" }] },
   ];
   return (
