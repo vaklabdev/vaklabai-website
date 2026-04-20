@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, Fragment } from "react";
 import { Routes, Route, useNavigate, useLocation, useParams } from "react-router-dom";
+import { getAppCheckToken } from "./firebase";
 
 const C = {
   bg:"#F8F7F4",bg2:"#EFEDE8",white:"#FFFFFF",dark:"#0C0C0C",dark2:"#151515",darkBorder:"#282828",
@@ -230,9 +231,12 @@ function SmsDemo() {
     if (!phone.trim()) return;
     setStatus("sending");
     try {
+      const appCheckToken = await getAppCheckToken();
+      const headers = { "Content-Type": "application/json" };
+      if (appCheckToken) headers["X-Firebase-AppCheck"] = appCheckToken;
       const res = await fetch(SMS_API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ phone }),
       });
       if (!res.ok) throw new Error();
@@ -315,17 +319,27 @@ function HomeLiveDemo() {
 
   const startStream = async () => {
     if (wsRef.current) return;
-    const ws = new WebSocket(`${DEMO_AGENT_URL}/api/voice-stream?specialty=${slugs[ac]}`);
-    wsRef.current = ws;
-    ws.binaryType = "arraybuffer";
     setStreaming(true);
     setTranscript([]);
     setElapsed(0);
+    let tokenParam = "";
+    try {
+      const appCheckToken = await getAppCheckToken();
+      const headers = { "Content-Type": "application/json" };
+      if (appCheckToken) headers["X-Firebase-AppCheck"] = appCheckToken;
+      const res = await fetch(`https://dev.vaklabai.com/api/demo-token`, { method: "POST", headers, body: JSON.stringify({ specialty: slugs[ac] }) });
+      if (res.ok) {
+        const data = await res.json();
+        tokenParam = `&token=${data.token}`;
+      }
+    } catch { /* token endpoint not available yet — connect without token */ }
+    const ws = new WebSocket(`${DEMO_AGENT_URL}/api/voice-stream?specialty=${slugs[ac]}${tokenParam}`);
+    wsRef.current = ws;
+    ws.binaryType = "arraybuffer";
     timerRef.current = setInterval(() => setElapsed(t => t + 1), 1000);
 
     ws.onopen = () => {
       ws.send(JSON.stringify({ type: "start", specialty: slugs[ac] }));
-      // Delay mic start so Sierra greets first without picking up background noise
       setTimeout(() => { if (wsRef.current) startMic(ws); }, 2000);
     };
     ws.onmessage = (e) => {
@@ -334,15 +348,16 @@ function HomeLiveDemo() {
           const data = JSON.parse(e.data);
           if (data.transcript) {
             const speaker = data.role === "user" ? "Guest" : "Sierra";
+            const text = data.transcript.replace(/\s+/g, " ").trim();
             const isFinal = data.is_final !== false;
             setTranscript(prev => {
               const last = prev[prev.length - 1];
               // If same speaker and not final, update the last line (streaming)
               if (last && last.speaker === speaker && !last.final) {
-                return [...prev.slice(0, -1), { speaker, text: data.transcript, final: isFinal }];
+                return [...prev.slice(0, -1), { speaker, text, final: isFinal }];
               }
               // New line
-              return [...prev, { speaker, text: data.transcript, final: isFinal }];
+              return [...prev, { speaker, text, final: isFinal }];
             });
           }
         } catch {}
@@ -519,7 +534,6 @@ function SpecialtyPage({ config: cf }) {
     <Sec style={{ paddingTop: 160 }}><Orb color={cf.orbColor} size={650} top={-280} right={-250} opacity={0.4} blur={80} /><Blob color={cf.accentColor} size={200} top={300} left={-60} opacity={0.04} /><GridBg /><div style={{ textAlign: "center", maxWidth: 800, margin: "0 auto" }}><div style={a(0)}><Label>{cf.label}</Label></div><div style={a(0.06)}><Heading s="hero" style={{ fontSize: "clamp(42px,6vw,72px)" }}>{cf.headline}</Heading></div><div style={{ ...a(0.16), maxWidth: 480, margin: "28px auto 0" }}><Txt style={{ fontSize: 17 }}>{cf.subhead}</Txt></div><div style={{ ...a(0.26), marginTop: 40 }}><Btn v="accent" style={{ padding: "15px 38px" }}>Run The Numbers</Btn></div></div><div style={{ ...a(0.34), marginTop: 48, display: "flex", justifyContent: "center" }}><WaveAnim color={cf.accentColor} bars={64} /></div></Sec>
     <Sec style={{ background: C.white }}><Reveal><div style={{ textAlign: "center", marginBottom: 56 }}><Heading s="md">The admin load is real. <span style={{ fontStyle: "italic" }}>So is the upside.</span></Heading></div></Reveal><Reveal delay={0.08}><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "start" }}><Glass hover={false} style={{ padding: "48px 40px" }}><div style={{ fontFamily: F.sans, fontSize: 12, color: C.textSoft, marginBottom: 4 }}>Your annual increase *</div><div style={{ fontFamily: F.serif, fontSize: 56, color: C.text, letterSpacing: "-0.03em", marginBottom: 32, fontWeight: 400 }}>${annual.toLocaleString()}</div>{[{ label: "Number of locations", val: locs, set: sL }, { label: "Total weekly calls", val: calls, set: sC2 }, { label: "Average visit cost", val: cost, set: sCo, prefix: "$" }].map((f, i) => <div key={i} style={{ marginBottom: 18 }}><div style={{ fontFamily: F.sans, fontSize: 12, color: C.textSoft, marginBottom: 5 }}>{f.label}</div><div style={{ display: "flex", alignItems: "center", border: `1.5px solid ${C.border}`, borderRadius: 12, padding: "11px 16px", background: C.white }}>{f.prefix && <span style={{ fontFamily: F.sans, fontSize: 14, color: C.textSoft, marginRight: 4 }}>{f.prefix}</span>}<input type="number" value={f.val} onChange={e => f.set(Number(e.target.value) || 0)} style={{ border: "none", outline: "none", fontFamily: F.sans, fontSize: 14, color: C.text, width: "100%", background: "transparent", fontWeight: 450 }} /></div></div>)}<div style={{ fontFamily: F.sans, fontSize: 11, color: C.textFaint, marginTop: 8 }}>*Estimates. <span style={{ textDecoration: "underline", cursor: "pointer", color: C.textSoft }}>Connect for details.</span></div></Glass><div><Txt style={{ fontWeight: 500, color: C.text, fontSize: 17, marginBottom: 24 }}>With Vaklab AI, {cf.practiceType} can:</Txt>{cf.benefits.map((b, i) => <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 18 }}><div style={{ width: 28, height: 28, borderRadius: 8, background: cf.softColor, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}><Icon name={["calendar", "phone", "refresh"][i]} size={14} color={cf.accentColor} /></div><Txt style={{ fontSize: 14.5 }}><strong style={{ color: C.text, fontWeight: 600 }}>{b.bold}</strong> {b.rest}</Txt></div>)}<div style={{ marginTop: 28 }}><Btn v="accent" onClick={openCalendly}>Book a Call</Btn></div></div></div></Reveal></Sec>
     <Sec><Reveal><div style={{ textAlign: "center", marginBottom: 16 }}><Heading s="md">{cf.featureHeadline}</Heading></div></Reveal><div style={{ display: "flex", flexDirection: "column", gap: 20, marginTop: 56 }}>{cf.features.map((f, i) => <Reveal key={i} delay={i * 0.08}><Glass hover={false} style={{ padding: "48px 52px" }}><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 44, alignItems: "center" }}><div style={{ order: i % 2 }}><div style={{ background: C.bg2, borderRadius: 18, padding: 24, border: `1px solid ${C.borderLight}` }}><div style={{ display: "flex", gap: 5, marginBottom: 14 }}>{f.tags.map(t => <span key={t} style={{ fontFamily: F.mono, fontSize: 8.5, background: cf.softColor, color: cf.accentColor, padding: "3px 8px", borderRadius: 5, letterSpacing: "0.04em" }}>{t}</span>)}</div><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}><div style={{ width: 26, height: 26, borderRadius: "50%", background: cf.softColor, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: F.serif, fontSize: 13, color: cf.accentColor, fontWeight: 600 }}>S</div><span style={{ fontFamily: F.sans, fontSize: 12, fontWeight: 600, color: C.text }}>Sierra</span><WaveAnim color={cf.accentColor} bars={10} /></div><div style={{ fontFamily: F.sans, fontSize: 12.5, color: C.textMid, lineHeight: 1.65, background: C.white, borderRadius: 12, padding: "14px 16px", border: `1px solid ${C.borderLight}`, fontWeight: 350 }}>{f.sampleMsg}</div></div></div><div style={{ order: i % 2 === 0 ? 1 : 0 }}><Heading s="sm" style={{ marginBottom: 10 }}>{f.title}</Heading><Txt style={{ fontSize: 14.5 }}>{f.desc}</Txt><div style={{ marginTop: 24 }}><Btn v="ghost" onClick={openCalendly}>Book a Call →</Btn></div></div></div></Glass></Reveal>)}</div></Sec>
-    <Sec style={{ background: C.white }}><Reveal><div style={{ display: "grid", gridTemplateColumns: "0.7fr 1.3fr", gap: 64, alignItems: "center" }}><div><Label>Trusted by leaders in care</Label><Heading s="md">Don't just take<br />our word for it.</Heading></div><div style={{ borderLeft: `2px solid ${cf.accentColor}`, paddingLeft: 36 }}><Label>Complete game-changer</Label><p style={{ fontFamily: F.serif, fontSize: 21, lineHeight: 1.55, color: C.text, margin: "14px 0 24px", fontStyle: "italic", fontWeight: 400 }}>"{cf.testimonial}"</p><span style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: "0.12em", color: C.textSoft, textTransform: "uppercase" }}>CEO</span><br /><span style={{ fontFamily: F.sans, fontSize: 13, color: C.textSoft, fontWeight: 350 }}>{cf.testimonialOrg}</span><div style={{ marginTop: 20 }}><BadgeRotate /></div></div></div></Reveal></Sec>
     <Sec dark><Orb color="rgba(99,102,241,0.1)" size={500} top={-200} right={-100} blur={100} /><Reveal><div style={{ textAlign: "center", marginBottom: 52 }}><Label light>{cf.statsLabel}</Label><Heading s="md" light>Real results. Happy teams. {cf.statsTagline}</Heading></div></Reveal><Reveal delay={0.1}><div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, textAlign: "center" }}>{[{ v: "95%", l: "LESS patient wait time" }, { v: "100%", l: "Call answer rate" }, { v: "20%", l: "More appointments" }].map((d, i) => <div key={i} style={{ padding: "52px 24px", borderRadius: 18, border: `1px solid ${C.darkBorder}`, background: "rgba(255,255,255,0.015)", transition: "all 0.4s" }} onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.3)"; e.currentTarget.style.boxShadow = C.shadowGlow; }} onMouseLeave={e => { e.currentTarget.style.borderColor = C.darkBorder; e.currentTarget.style.boxShadow = "none"; }}><div className="stat-num" style={{ fontFamily: F.serif, fontSize: 64, color: "#fff", letterSpacing: "-0.04em", lineHeight: 0.92, marginBottom: 8, fontWeight: 400 }}>{d.v}</div><div style={{ fontFamily: F.sans, fontSize: 12.5, color: "rgba(255,255,255,0.55)", fontWeight: 350 }}>{d.l}</div></div>)}</div></Reveal></Sec>
     <Sec style={{ background: C.white }}><Reveal><div style={{ textAlign: "center", marginBottom: 56 }}><Label>A tale of two practices</Label><Heading s="md">Vaklab AI vs the status quo</Heading></div><Glass hover={false} style={{ overflow: "hidden", padding: 0, borderRadius: 20 }}><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: `1px solid ${C.borderLight}` }}><div style={{ padding: "18px 36px", fontFamily: F.sans, fontSize: 13, fontWeight: 600, color: C.text }}>With Vaklab AI</div><div style={{ padding: "18px 36px", fontFamily: F.sans, fontSize: 13, fontWeight: 500, color: C.textSoft }}>Without</div></div>{[["Every call answered", "Messy phone trees"], ["Staff focused on patients", "Staff pulled from care"], ["Automatic outbound comms", "Juggling spreadsheets"], ["Seamless branded outreach", "Manual billing reminders"], ["24/7/365 support", "Limited 9-5 availability"]].map((row, i) => <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: i < 4 ? `1px solid ${C.borderLight}` : "none" }}><div style={{ padding: "16px 36px", display: "flex", alignItems: "center", gap: 12 }}><span style={{ width: 22, height: 22, borderRadius: "50%", background: C.tealSoft, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon name="check" size={12} color={C.tealMid} strokeWidth={2.5} /></span><span style={{ fontFamily: F.sans, fontSize: 13.5, color: C.text, fontWeight: 450 }}>{row[0]}</span></div><div style={{ padding: "16px 36px", display: "flex", alignItems: "center", gap: 12 }}><span style={{ width: 22, height: 22, borderRadius: "50%", background: C.roseSoft, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon name="cross" size={12} color={C.rose} strokeWidth={2.5} /></span><span style={{ fontFamily: F.sans, fontSize: 13.5, color: C.textSoft, fontWeight: 350 }}>{row[1]}</span></div></div>)}</Glass></Reveal></Sec>
     <Sec><Reveal><div style={{ textAlign: "center", marginBottom: 56 }}><Label>{cf.onboardLabel}</Label><Heading s="md">Your AI Assistant in three easy steps</Heading></div><div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>{[{ n: "1", t: "Team up", d: "We learn your workflows and prep for a seamless start." }, { n: "2", t: "Meet Sierra", d: "We tailor Sierra to answer, route, schedule, and text like staff." }, { n: "3", t: "Go Live", d: "Results on day one — more calls, fewer tasks, happier patients." }].map((step, i) => <Glass key={i} style={{ padding: "44px 28px", textAlign: "center" }}><div style={{ width: 48, height: 48, borderRadius: 100, border: `2px solid ${cf.accentColor}`, display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: F.serif, fontSize: 20, color: cf.accentColor, marginBottom: 20, fontWeight: 500 }}>{step.n}</div><Heading s="sm" style={{ marginBottom: 10 }}>{step.t}</Heading><Txt style={{ fontSize: 13.5 }}>{step.d}</Txt></Glass>)}</div></Reveal></Sec>
