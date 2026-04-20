@@ -5,7 +5,7 @@ import { getAppCheckToken } from "./firebase";
 const C = {
   bg:"#F8F7F4",bg2:"#EFEDE8",white:"#FFFFFF",dark:"#0C0C0C",dark2:"#151515",darkBorder:"#282828",
   text:"#111110",textMid:"#3D3D3A",textSoft:"#7A7A72",textFaint:"#B0AFA8",
-  accent:"#5B21B6",accentMid:"#7C3AED",accentBright:"#8B5CF6",accentLight:"#A5B4FC",accentSoft:"#EEF2FF",accentGlow:"rgba(99,102,241,0.15)",
+  accent:"#232D8A",accentMid:"#2e37a4",accentBright:"#3B46C4",accentLight:"#7B83D4",accentSoft:"#ECEEFF",accentGlow:"rgba(46,55,164,0.15)",
   warm:"#92400E",warmMid:"#B45309",warmSoft:"#FFFBEB",
   teal:"#115E59",tealMid:"#0D9488",tealLight:"#5EEAD4",tealSoft:"#F0FDFA",
   rose:"#9F1239",roseSoft:"#FFF1F2",
@@ -204,7 +204,7 @@ function HomeHero() {
     <GridBg /><Orb color={C.accentSoft} size={900} top={-400} right={-350} opacity={0.45} blur={100} /><Blob color={C.accentLight} size={300} top={150} right={250} opacity={0.05} /><Orb color={C.warmSoft} size={500} bottom={-250} left={-200} opacity={0.3} blur={80} />
     <div style={{ textAlign: "center", maxWidth: 900, margin: "0 auto" }}>
       <div style={a(0)}><Label>The voice of modern healthcare</Label></div>
-      <div style={a(0.06)}><Heading s="hero">Never Miss a{"\n"}Patient Again.{"\n"}<span style={{ fontStyle: "italic", color: C.accentMid }}>Deliver better care.</span></Heading></div>
+      <div style={a(0.06)}><Heading s="hero" style={{ color: "#2e37a4" }}>Never Miss a{"\n"}Patient Again.{"\n"}<span style={{ fontStyle: "italic", color: C.accentMid }}>Deliver better care.</span></Heading></div>
       <div style={{ ...a(0.18), maxWidth: 500, margin: "40px auto 0" }}><Txt style={{ fontSize: 18 }}>The enterprise healthcare AI assistant that handles the whole conversation across voice, and text.</Txt></div>
       <div style={{ ...a(0.32), marginTop: 72, display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 22 }}>
         <Label>MEET SIERRA</Label>
@@ -569,7 +569,7 @@ function Footer() {
     { title: "Company", items: [{ l: "Email Us", href: "mailto:support@vaklabai.com" }] },
   ];
   return (
-    <footer style={{ background: "linear-gradient(180deg, #1E1B4B 0%, #1a1744 100%)", padding: "96px 48px 44px" }}>
+    <footer style={{ background: "linear-gradient(180deg, #1E2270 0%, #181D5C 100%)", padding: "96px 48px 44px" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1.6fr repeat(3,1fr)", gap: 44, marginBottom: 80 }}>
           <div>
